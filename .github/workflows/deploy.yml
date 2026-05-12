@@ -22,12 +22,12 @@ jobs:
 
       - name: Inject API secrets
         run: |
-          sed -i 's|__TMDB_API_KEY__|${{ secrets.TMDB_API_KEY }}|g' index.html
-          sed -i 's|__TMDB_API_KEY__|${{ secrets.TMDB_API_KEY }}|g' admin.html
-          sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' index.html
-          sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' admin.html
-          sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' index.html
-          sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' admin.html
+          sed -i 's|__TMDB_API_KEY__|${{ secrets.TMDB_API_KEY }}|g' index.html || true
+          sed -i 's|__TMDB_API_KEY__|${{ secrets.TMDB_API_KEY }}|g' admin.html || true
+          sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' index.html || true
+          sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' admin.html || true
+          sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' index.html || true
+          sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' admin.html || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
