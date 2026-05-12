@@ -743,6 +743,8 @@ const app = {
 
     async init() {
     this.updateAuthUI();
+    await this.loadWatchlist();
+    this.updateWatchlistBadge();
     this.updateWatchlistBadge();
     this.navigate('home');
     
@@ -810,6 +812,8 @@ const app = {
     localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
     this.closeAuthModal();
     this.updateAuthUI();
+    await this.loadWatchlist();
+    this.updateWatchlistBadge();
     this.showToast(`Welcome back, ${this.state.user.name}!`);
     if (this.state.page === 'watchlist') this.navigate('watchlist');
 }
@@ -833,6 +837,8 @@ async handleSignup() {
     localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
     this.closeAuthModal();
     this.updateAuthUI();
+    await this.loadWatchlist();
+    this.updateWatchlistBadge();
     this.showToast(`Account created! Welcome, ${name}!`);
 }
 
