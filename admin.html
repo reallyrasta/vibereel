@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VibeReel Admin — Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="data:,">
+<script src="https://cdn.tailwindcss.com"></script>
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-  window.supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_KEY = '__SUPABASE_KEY__';
+const hasSupabaseConfig = SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.startsWith('__') && !SUPABASE_KEY.startsWith('__');
+const supabase = hasSupabaseConfig ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+window.supabase = supabase;
+if (!window.supabase) {
+  console.warn('Supabase is not configured; admin auth is disabled until credentials are provided.');
+}
 </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
+        window.tailwind = window.tailwind || {};
         tailwind.config = {
             theme: {
                 extend: {
@@ -207,19 +218,13 @@
         </div>
 
         <div class="text-center mt-6">
-            <button onclick="window.location.href='vibereel_prototype.html'" class="text-sm text-vr-text-muted hover:text-vr-text-secondary transition-colors">
+            <button onclick="window.location.href='index.html'" class="text-sm text-vr-text-muted hover:text-vr-text-secondary transition-colors">
                 <i class="fas fa-arrow-left mr-1"></i> Back to VibeReel
             </button>
         </div>
-
         <div class="mt-6 p-4 rounded-xl border border-vr-border bg-vr-bg-card">
-            <p class="text-xs text-vr-text-muted mb-2 font-semibold uppercase tracking-wider">Demo Credentials</p>
-            <div class="space-y-1 text-xs text-vr-text-secondary font-mono">
-                <p><span class="text-vr-red">super_admin</span> / admin@vibereel.com / admin123</p>
-                <p><span class="text-vr-badge-classic">admin</span> / manager@vibereel.com / admin123</p>
-                <p><span class="text-vr-badge-cult">moderator</span> / mod@vibereel.com / admin123</p>
-                <p><span class="text-vr-text-muted">viewer</span> / view@vibereel.com / admin123</p>
-            </div>
+            <p class="text-xs text-vr-text-muted mb-2 font-semibold uppercase tracking-wider">Access</p>
+            <p class="text-xs text-vr-text-secondary">Use a Supabase Auth account with a profiles.role of super_admin, admin, or moderator.</p>
         </div>
     </div>
 </div>
@@ -297,13 +302,6 @@
 <script>
 // ==================== MOCK DATA ====================
 const TMDB_API_KEY = '__TMDB_API_KEY__';
-const ADMIN_USERS = [
-    { id: 1, name: "Sarah Mitchell", email: "admin@vibereel.com", password: "admin123", role: "super_admin", avatar: "SM", lastLogin: "2026-05-11T10:30:00Z" },
-    { id: 2, name: "James Chen", email: "manager@vibereel.com", password: "admin123", role: "admin", avatar: "JC", lastLogin: "2026-05-10T14:20:00Z" },
-    { id: 3, name: "Maya Patel", email: "mod@vibereel.com", password: "admin123", role: "moderator", avatar: "MP", lastLogin: "2026-05-11T08:15:00Z" },
-    { id: 4, name: "David Kim", email: "view@vibereel.com", password: "admin123", role: "viewer", avatar: "DK", lastLogin: "2026-05-09T16:45:00Z" }
-];
-
 const REGULAR_USERS = [
     { id: 101, name: "Alex Rivera", email: "alex.rivera@gmail.com", username: "alexrv", signupDate: "2026-01-15", lastActive: "2026-05-11", premium: true, searches: 47, watchlist: 12, status: "active", country: "US", device: "iPhone 15" },
     { id: 102, name: "Jordan Chen", email: "jordan.chen@github.com", username: "jordanc", signupDate: "2026-02-03", lastActive: "2026-05-10", premium: false, searches: 23, watchlist: 5, status: "active", country: "CA", device: "MacBook Pro" },
@@ -430,6 +428,9 @@ const SIDEBAR_ITEMS = {
 };
 
 // ==================== ADMIN APP ====================
+const ADMIN_ROLES = ['super_admin', 'admin', 'moderator'];
+const ROLE_LABELS = { super_admin: 'Super Admin', admin: 'Admin', moderator: 'Moderator', viewer: 'Viewer' };
+
 const adminApp = {
     state: {
         user: JSON.parse(localStorage.getItem('vibereel_admin_user') || 'null'),
@@ -440,13 +441,92 @@ const adminApp = {
         charts: {}
     },
 
-    init() {
-        if (this.state.user) {
-            this.showApp();
-        } else {
-            document.getElementById('login-page').classList.remove('hidden');
-            document.getElementById('admin-app').classList.add('hidden');
+    getSupabaseClient() {
+        return window.supabase || null;
+    },
+
+    showLogin() {
+        document.getElementById('login-page').classList.remove('hidden');
+        document.getElementById('admin-app').classList.add('hidden');
+    },
+
+    getInitials(nameOrEmail) {
+        return (nameOrEmail || 'Admin')
+            .split(/\s+|@/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(part => part[0]?.toUpperCase() || '')
+            .join('') || 'AD';
+    },
+
+    async getAuthorizedAdmin(user, options = {}) {
+        const { showAlert = true } = options;
+        const supabase = this.getSupabaseClient();
+        if (!supabase) {
+            this.showToast('Supabase is not configured.');
+            if (showAlert) alert('Supabase is not configured.');
+            return null;
         }
+
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role, name, full_name, username, avatar_url')
+            .eq('id', user.id)
+            .single();
+
+        if (error) {
+            console.error('Unable to load admin profile:', error);
+            this.showToast('Unable to verify admin access.');
+            if (showAlert) alert('Unable to verify admin access');
+            return null;
+        }
+
+        if (!['super_admin','admin','moderator'].includes(profile?.role)) {
+            alert('Access denied');
+            return null;
+        }
+
+        const name = profile.full_name || profile.name || profile.username || user.user_metadata?.name || user.email?.split('@')[0] || 'Admin';
+        return {
+            id: user.id,
+            name,
+            email: user.email,
+            role: profile.role,
+            avatar: this.getInitials(name),
+            avatarUrl: profile.avatar_url || '',
+            lastLogin: new Date().toISOString()
+        };
+    },
+
+    async init() {
+        const supabase = this.getSupabaseClient();
+        if (!supabase?.auth) {
+            localStorage.removeItem('vibereel_admin_user');
+            this.state.user = null;
+            this.showLogin();
+            return;
+        }
+
+        try {
+            const { data: { session } = {} } = await supabase.auth.getSession();
+            if (session?.user) {
+                const adminUser = await this.getAuthorizedAdmin(session.user, { showAlert: false });
+                if (adminUser) {
+                    this.state.user = adminUser;
+                    localStorage.setItem('vibereel_admin_user', JSON.stringify(adminUser));
+                    this.showApp();
+                    return;
+                }
+                await supabase.auth.signOut();
+            }
+        } catch (error) {
+            console.error('Admin session restore failed:', error);
+            this.showToast('Could not restore admin session.');
+        }
+
+        localStorage.removeItem('vibereel_admin_user');
+        this.state.user = null;
+        this.showLogin();
     },
 
     showApp() {
@@ -457,34 +537,58 @@ const adminApp = {
         this.navigate('dashboard');
     },
 
-    handleLogin() {
-        const email = document.getElementById('admin-login-email').value;
-        const password = document.getElementById('admin-login-password').value;
-        const user = ADMIN_USERS.find(u => u.email === email && u.password === password);
-
-        if (user) {
-            this.state.user = { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar };
-            localStorage.setItem('vibereel_admin_user', JSON.stringify(this.state.user));
-            this.showApp();
-            this.showToast(`Welcome back, ${user.name}`);
-        } else {
-            this.showToast('Invalid credentials. Please try again.');
+    async handleLogin() {
+        const supabase = this.getSupabaseClient();
+        if (!supabase?.auth) {
+            this.showToast('Supabase is not configured.');
+            alert('Supabase is not configured.');
+            return;
         }
-    },
 
-    handleSSO(provider) {
-        const user = ADMIN_USERS[0]; // Default to super_admin for demo
-        this.state.user = { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, provider };
-        localStorage.setItem('vibereel_admin_user', JSON.stringify(this.state.user));
+        const email = document.getElementById('admin-login-email').value.trim();
+        const password = document.getElementById('admin-login-password').value;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            this.showToast(error.message || 'Invalid credentials. Please try again.');
+            return;
+        }
+
+        const adminUser = await this.getAuthorizedAdmin(data.user);
+        if (!adminUser) {
+            await supabase.auth.signOut();
+            localStorage.removeItem('vibereel_admin_user');
+            this.state.user = null;
+            return;
+        }
+
+        this.state.user = adminUser;
+        localStorage.setItem('vibereel_admin_user', JSON.stringify(adminUser));
         this.showApp();
-        this.showToast(`Signed in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`);
+        this.showToast(`Welcome back, ${adminUser.name}`);
     },
 
-    logout() {
+    async handleSSO(provider) {
+        const supabase = this.getSupabaseClient();
+        if (!supabase?.auth) {
+            this.showToast('Supabase is not configured.');
+            alert('Supabase is not configured.');
+            return;
+        }
+
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: { redirectTo: window.location.href }
+        });
+        if (error) this.showToast(error.message);
+    },
+
+    async logout() {
+        const supabase = this.getSupabaseClient();
+        if (supabase?.auth) await supabase.auth.signOut();
         this.state.user = null;
         localStorage.removeItem('vibereel_admin_user');
-        document.getElementById('admin-app').classList.add('hidden');
-        document.getElementById('login-page').classList.remove('hidden');
+        this.showLogin();
         this.showToast('Logged out successfully');
     },
 
@@ -492,10 +596,8 @@ const adminApp = {
         if (!this.state.user) return;
         document.getElementById('admin-name').textContent = this.state.user.name;
         document.getElementById('admin-avatar').textContent = this.state.user.avatar;
-        const roleLabels = { super_admin: 'Super Admin', admin: 'Admin', moderator: 'Moderator', viewer: 'Viewer' };
-        document.getElementById('admin-role-badge').textContent = roleLabels[this.state.user.role];
+        document.getElementById('admin-role-badge').textContent = ROLE_LABELS[this.state.user.role] || this.state.user.role;
     },
-
     renderSidebar() {
         const nav = document.getElementById('sidebar-nav');
         const items = SIDEBAR_ITEMS[this.state.user.role] || [];
@@ -660,6 +762,7 @@ const adminApp = {
     },
 
     initDashboardCharts() {
+        if (!window.Chart) { this.showToast('Charts are unavailable.'); return; }
         Chart.defaults.color = '#555555';
         Chart.defaults.borderColor = '#242424';
         Chart.defaults.font.family = "'DM Sans', sans-serif";
@@ -1237,6 +1340,7 @@ const adminApp = {
     },
 
     initAnalyticsCharts() {
+        if (!window.Chart) { this.showToast('Charts are unavailable.'); return; }
         const ctx = document.getElementById('chart-search-trends')?.getContext('2d');
         if (ctx) {
             const data = Array.from({length: 30}, (_, i) => 200 + Math.floor(Math.random() * 300) + i * 5);
@@ -1455,6 +1559,7 @@ const adminApp = {
 };
 
 // Initialize
+window.adminApp = adminApp;
 document.addEventListener('DOMContentLoaded', () => adminApp.init());
 </script>
 </body>
