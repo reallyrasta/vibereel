@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VibeReel Admin — Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  window.supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
+</script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -292,6 +296,7 @@
 
 <script>
 // ==================== MOCK DATA ====================
+const TMDB_API_KEY = '__TMDB_API_KEY__';
 const ADMIN_USERS = [
     { id: 1, name: "Sarah Mitchell", email: "admin@vibereel.com", password: "admin123", role: "super_admin", avatar: "SM", lastLogin: "2026-05-11T10:30:00Z" },
     { id: 2, name: "James Chen", email: "manager@vibereel.com", password: "admin123", role: "admin", avatar: "JC", lastLogin: "2026-05-10T14:20:00Z" },
