@@ -6,6 +6,8 @@
     <title>VibeReel — Find Your Perfect Movie</title>
     <script src="https://cdn.tailwindcss.com"></script>
 <script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   window.supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
 </script>
@@ -480,32 +482,83 @@
 // ==================== DATA ====================
 const TMDB_API_KEY = '__TMDB_API_KEY__';
 
-const MOCK_MOVIES = [
-    { id: 1, title: "Inception", year: 2010, runtime: 148, rating: 8.8, votes: 2300000, genres: ["Sci-Fi","Action","Thriller"], moods: ["Sci-Fi","Action","Thriller","Mind-Bending"], platforms: ["Netflix","Prime"], occasions: ["Date Night","Movie Marathon"], categories: ["Mind-Bending","Award Winners"], actors: [{id:6193,name:"Leonardo DiCaprio"},{id:24045,name:"Joseph Gordon-Levitt"}], director: "Christopher Nolan", poster: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.", trailer: "YoHD9XEInc0", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#0D1F0D", posterAccent: "#003300" },
-    { id: 2, title: "The Dark Knight", year: 2008, runtime: 152, rating: 9.0, votes: 2800000, genres: ["Action","Drama","Thriller"], moods: ["Action","Thriller","Drama","Crime"], platforms: ["HBO Max","Prime"], occasions: ["Movie Marathon","Date Night"], categories: ["Award Winners","Cult Classics"], actors: [{id:3894,name:"Christian Bale"},{id:4587,name:"Heath Ledger"}], director: "Christopher Nolan", poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1280&h=720&fit=crop", overview: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests.", trailer: "EXeTwQWrcwY", is_original: true, is_sequel: true, sequel_number: 2, posterColor: "#1A1A1A", posterAccent: "#0A0A14" },
-    { id: 3, title: "Parasite", year: 2019, runtime: 132, rating: 8.5, votes: 890000, genres: ["Drama","Thriller","Comedy"], moods: ["Drama","Thriller","Dark Comedy"], platforms: ["Netflix","Hulu"], occasions: ["Date Night","Rainy Day"], categories: ["Award Winners","Foreign Films"], actors: [{id:556435,name:"Song Kang-ho"},{id:556436,name:"Lee Sun-kyun"}], director: "Bong Joon Ho", poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1280&h=720&fit=crop", overview: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.", trailer: "5xH0HfJHsaY", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A1A1A", posterAccent: "#0A0A14" },
-    { id: 4, title: "Spirited Away", year: 2001, runtime: 125, rating: 8.6, votes: 780000, genres: ["Animation","Adventure","Family"], moods: ["Adventure","Fantasy","Animation"], platforms: ["Netflix","HBO Max"], occasions: ["Family Movie Night","Rainy Day"], categories: ["Foreign Films","Award Winners"], actors: [{id:112233,name:"Rumi Hiiragi"},{id:112234,name:"Miyu Irino"}], director: "Hayao Miyazaki", poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1280&h=720&fit=crop", overview: "During her family's move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits.", trailer: "ByXuk9QqQkk", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" },
-    { id: 5, title: "The Matrix", year: 1999, runtime: 136, rating: 8.7, votes: 1900000, genres: ["Sci-Fi","Action"], moods: ["Action","Sci-Fi","Thriller","Mind-Bending"], platforms: ["Netflix","Prime"], occasions: ["Movie Marathon","Date Night"], categories: ["Cult Classics","Mind-Bending"], actors: [{id:6384,name:"Keanu Reeves"},{id:6385,name:"Laurence Fishburne"}], director: "Lana Wachowski", poster: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1280&h=720&fit=crop", overview: "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.", trailer: "m8e-FF8MsqU", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#0D1F0D", posterAccent: "#003300" },
-    { id: 6, title: "Pulp Fiction", year: 1994, runtime: 154, rating: 8.9, votes: 2100000, genres: ["Crime","Drama"], moods: ["Drama","Thriller","Comedy","Crime"], platforms: ["Netflix","Paramount+"], occasions: ["Movie Marathon","Party"], categories: ["Cult Classics","Indie Gems"], actors: [{id:2231,name:"John Travolta"},{id:6193,name:"Samuel L. Jackson"}], director: "Quentin Tarantino", poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", trailer: "s7EdQ4FqbhY", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#2E1A00", posterAccent: "#2E0A00" },
-    { id: 7, title: "Get Out", year: 2017, runtime: 104, rating: 7.8, votes: 650000, genres: ["Horror","Mystery","Thriller"], moods: ["Horror","Thriller","Suspense"], platforms: ["Netflix","Prime"], occasions: ["Date Night","Rainy Day"], categories: ["Award Winners","Psychological"], actors: [{id:556789,name:"Daniel Kaluuya"},{id:556790,name:"Allison Williams"}], director: "Jordan Peele", poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "A young African-American visits his white girlfriend's parents for the weekend, where his simmering uneasiness about their reception eventually reaches a boiling point.", trailer: "DzfpyUB60YY", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0A2E", posterAccent: "#0A0A14" },
-    { id: 8, title: "La La Land", year: 2016, runtime: 128, rating: 8.0, votes: 620000, genres: ["Comedy","Drama","Music"], moods: ["Romance","Drama","Comedy","Musical"], platforms: ["Netflix","Hulu"], occasions: ["Date Night","Rainy Day"], categories: ["Award Winners","Musical"], actors: [{id:119589,name:"Ryan Gosling"},{id:234563,name:"Emma Stone"}], director: "Damien Chazelle", poster: "https://images.unsplash.com/photo-1517604931442-71053e3e2f3f?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1280&h=720&fit=crop", overview: "While navigating their careers in Los Angeles, a pianist and an actress fall in love while attempting to reconcile their aspirations.", trailer: "0pdqf4P9MB8", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" },
-    { id: 9, title: "Mad Max: Fury Road", year: 2015, runtime: 120, rating: 8.1, votes: 1050000, genres: ["Action","Adventure","Sci-Fi"], moods: ["Action","Adventure","Sci-Fi","Epic"], platforms: ["Netflix","HBO Max"], occasions: ["Movie Marathon","Workout"], categories: ["Award Winners","Cult Classics"], actors: [{id:3894,name:"Tom Hardy"},{id:234564,name:"Charlize Theron"}], director: "George Miller", poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1280&h=720&fit=crop", overview: "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland with the aid of a group of female prisoners.", trailer: "hEJnMQG9ev8", is_original: false, is_sequel: true, sequel_number: 4, posterColor: "#2E1A00", posterAccent: "#2E0A00" },
-    { id: 10, title: "The Shining", year: 1980, runtime: 146, rating: 8.4, votes: 1100000, genres: ["Drama","Horror"], moods: ["Horror","Thriller","Drama","Suspense"], platforms: ["Netflix","Prime"], occasions: ["Halloween","Rainy Day"], categories: ["Cult Classics","Psychological","Based on True Stories"], actors: [{id:12345,name:"Jack Nicholson"},{id:12346,name:"Shelley Duvall"}], director: "Stanley Kubrick", poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "A family heads to an isolated hotel for the winter where a sinister presence influences the father into violence.", trailer: "5Cb3ik6zP2I", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A1A1A", posterAccent: "#0A0A14" },
-    { id: 11, title: "Forrest Gump", year: 1994, runtime: 142, rating: 8.8, votes: 2200000, genres: ["Drama","Romance"], moods: ["Drama","Romance","Comedy","Feel-Good","Inspirational"], platforms: ["Netflix","Prime"], occasions: ["Family Movie Night","Rainy Day"], categories: ["Award Winners","Based on True Stories"], actors: [{id:31,name:"Tom Hanks"},{id:32,name:"Robin Wright"}], director: "Robert Zemeckis", poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1280&h=720&fit=crop", overview: "The presidencies of Kennedy and Johnson, the Vietnam War, and other historical events unfold from the perspective of an Alabama man.", trailer: "bLvqoHBptjg", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A1A1A", posterAccent: "#0A0A14" },
-    { id: 12, title: "Interstellar", year: 2014, runtime: 169, rating: 8.7, votes: 1900000, genres: ["Sci-Fi","Drama","Adventure"], moods: ["Sci-Fi","Drama","Adventure","Epic","Mind-Bending"], platforms: ["Netflix","Paramount+"], occasions: ["Movie Marathon","Date Night"], categories: ["Mind-Bending","Award Winners"], actors: [{id:10297,name:"Matthew McConaughey"},{id:1813,name:"Anne Hathaway"}], director: "Christopher Nolan", poster: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1280&h=720&fit=crop", overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", trailer: "zSWdZVtXT7E", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#0D1F0D", posterAccent: "#003300" },
-    { id: 13, title: "The Godfather", year: 1972, runtime: 175, rating: 9.2, votes: 2000000, genres: ["Crime","Drama"], moods: ["Drama","Thriller","Crime","Epic"], platforms: ["Netflix","Prime"], occasions: ["Movie Marathon","Date Night"], categories: ["Award Winners","Cult Classics"], actors: [{id:1158,name:"Marlon Brando"},{id:3084,name:"Al Pacino"}], director: "Francis Ford Coppola", poster: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1280&h=720&fit=crop", overview: "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.", trailer: "UaVTIH8mujA", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#2E1A00", posterAccent: "#2E0A00" },
-    { id: 14, title: "Toy Story", year: 1995, runtime: 81, rating: 8.3, votes: 1100000, genres: ["Animation","Adventure","Comedy"], moods: ["Comedy","Adventure","Animation","Family"], platforms: ["Disney+","Prime"], occasions: ["Family Movie Night","Sleepover"], categories: ["Award Winners","Animation"], actors: [{id:2231,name:"Tom Hanks"},{id:2157,name:"Tim Allen"}], director: "John Lasseter", poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1280&h=720&fit=crop", overview: "A cowboy doll is profoundly threatened and jealous when a new spaceman figure supplants him as top toy.", trailer: "v-PjgYDrg70", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" },
-    { id: 15, title: "The Silence of the Lambs", year: 1991, runtime: 118, rating: 8.6, votes: 1600000, genres: ["Crime","Drama","Thriller"], moods: ["Horror","Thriller","Drama","Suspense","Crime"], platforms: ["Netflix","HBO Max"], occasions: ["Date Night","Rainy Day"], categories: ["Award Winners","Psychological","Based on True Stories"], actors: [{id:4173,name:"Jodie Foster"},{id:3497,name:"Anthony Hopkins"}], director: "Jonathan Demme", poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "A young F.B.I. cadet must receive the help of an incarcerated and manipulative cannibal killer to help catch another serial killer.", trailer: "W6Mm8Sbe__o", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0A2E", posterAccent: "#0A0A14" },
-    { id: 16, title: "Avengers: Endgame", year: 2019, runtime: 181, rating: 8.4, votes: 1200000, genres: ["Action","Adventure","Drama"], moods: ["Action","Adventure","Sci-Fi","Superhero","Epic"], platforms: ["Disney+","Prime"], occasions: ["Movie Marathon","Party"], categories: ["Award Winners","Book Adaptations"], actors: [{id:3223,name:"Robert Downey Jr."},{id:16828,name:"Chris Evans"}], director: "Anthony Russo", poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1280&h=720&fit=crop", overview: "After the devastating events of Infinity War, the universe is in ruins. With the help of remaining allies, the Avengers assemble once more.", trailer: "TcMBFSGVi1c", is_original: false, is_sequel: true, sequel_number: 4, posterColor: "#0D4F8B", posterAccent: "#1A0A2E" },
-    { id: 17, title: "The Grand Budapest Hotel", year: 2014, runtime: 99, rating: 8.1, votes: 850000, genres: ["Adventure","Comedy","Crime"], moods: ["Comedy","Adventure","Drama","Quirky"], platforms: ["Netflix","Hulu"], occasions: ["Date Night","Rainy Day"], categories: ["Award Winners","Indie Gems"], actors: [{id:5657,name:"Ralph Fiennes"},{id:1231,name:"F. Murray Abraham"}], director: "Wes Anderson", poster: "https://images.unsplash.com/photo-1517604931442-71053e3e2f3f?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1280&h=720&fit=crop", overview: "A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy.", trailer: "1Fg5iWmQjwk", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" },
-    { id: 18, title: "Hereditary", year: 2018, runtime: 127, rating: 7.3, votes: 340000, genres: ["Drama","Horror","Mystery"], moods: ["Horror","Drama","Thriller","Suspense"], platforms: ["Netflix","Prime"], occasions: ["Halloween","Rainy Day"], categories: ["Psychological","Cult Classics"], actors: [{id:555667,name:"Toni Collette"},{id:555668,name:"Alex Wolff"}], director: "Ari Aster", poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "A grieving family is haunted by tragic and disturbing occurrences.", trailer: "V6wWKNij_1M", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0A2E", posterAccent: "#0A0A14" },
-    { id: 19, title: "Spider-Man: Into the Spider-Verse", year: 2018, runtime: 117, rating: 8.4, votes: 620000, genres: ["Animation","Action","Adventure"], moods: ["Action","Comedy","Adventure","Animation","Superhero"], platforms: ["Netflix","Prime"], occasions: ["Family Movie Night","Sleepover"], categories: ["Award Winners","Animation"], actors: [{id:5567890,name:"Shameik Moore"},{id:5567891,name:"Jake Johnson"}], director: "Bob Persichetti", poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1280&h=720&fit=crop", overview: "Teen Miles Morales becomes the Spider-Man of his universe, and must join with five spider-powered individuals from other dimensions.", trailer: "g4Hbz2jLxvQ", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" },
-    { id: 20, title: "The Social Network", year: 2010, runtime: 120, rating: 7.8, votes: 720000, genres: ["Biography","Drama"], moods: ["Drama","Thriller","Crime"], platforms: ["Netflix","Prime"], occasions: ["Date Night","Rainy Day"], categories: ["Award Winners","Based on True Stories"], actors: [{id:44735,name:"Jesse Eisenberg"},{id:44736,name:"Andrew Garfield"}], director: "David Fincher", poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1280&h=720&fit=crop", overview: "As Harvard student Mark Zuckerberg creates the social networking site that would become known as Facebook, he is sued by the twins.", trailer: "lB95KLmpLR4", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A1A1A", posterAccent: "#0A0A14" },
-    { id: 21, title: "Dune: Part Two", year: 2024, runtime: 166, rating: 8.5, votes: 450000, genres: ["Sci-Fi","Action","Adventure"], moods: ["Action","Sci-Fi","Adventure","Epic","Space"], platforms: ["Netflix","HBO Max"], occasions: ["Movie Marathon","Date Night"], categories: ["Book Adaptations","Award Winners"], actors: [{id:1190668,name:"Timothee Chalamet"},{id:1125618,name:"Zendaya"}], director: "Denis Villeneuve", poster: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1280&h=720&fit=crop", overview: "Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.", trailer: "Way9Dexny3w", is_original: false, is_sequel: true, sequel_number: 2, posterColor: "#2E1A00", posterAccent: "#2E0A00" },
-    { id: 22, title: "Oppenheimer", year: 2023, runtime: 180, rating: 8.4, votes: 890000, genres: ["Biography","Drama","History"], moods: ["Drama","Thriller","Epic","Biographical"], platforms: ["Prime","Apple TV+"], occasions: ["Movie Marathon","Date Night"], categories: ["Award Winners","Based on True Stories"], actors: [{id:2037,name:"Cillian Murphy"},{id:5081,name:"Emily Blunt"}], director: "Christopher Nolan", poster: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1280&h=720&fit=crop", overview: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.", trailer: "uYPbbksJxIg", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A1A1A", posterAccent: "#0A0A14" },
-    { id: 23, title: "Barbie", year: 2023, runtime: 114, rating: 6.9, votes: 520000, genres: ["Adventure","Comedy","Fantasy"], moods: ["Comedy","Adventure","Romance","Fantasy"], platforms: ["Netflix","Prime"], occasions: ["Party","Girls Night","Date Night"], categories: ["Award Winners","Comedy"], actors: [{id:234352,name:"Margot Robbie"},{id:234353,name:"Ryan Gosling"}], director: "Greta Gerwig", poster: "https://images.unsplash.com/photo-1517604931442-71053e3e2f3f?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1280&h=720&fit=crop", overview: "Barbie suffers a crisis that leads her to question her world and her existence.", trailer: "pBk4NYhWNMM", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" },
-    { id: 24, title: "Everything Everywhere All At Once", year: 2022, runtime: 139, rating: 7.8, votes: 480000, genres: ["Action","Adventure","Comedy"], moods: ["Action","Comedy","Sci-Fi","Adventure","Mind-Bending","Quirky"], platforms: ["Netflix","Prime"], occasions: ["Movie Marathon","Date Night"], categories: ["Award Winners","Mind-Bending","Indie Gems"], actors: [{id:123456,name:"Michelle Yeoh"},{id:123457,name:"Ke Huy Quan"}], director: "Daniel Kwan", poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=300&h=450&fit=crop", backdrop: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1280&h=720&fit=crop", overview: "A middle-aged Chinese immigrant is swept up into an insane adventure in which she alone can save the existence.", trailer: "wxN1T1uxQ2g", is_original: true, is_sequel: false, sequel_number: 0, posterColor: "#1A0F2E", posterAccent: "#2E1A1A" }
-];
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
+const TMDB_GENRE_MAP = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+  80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+  14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+  9648: "Mystery", 10749: "Romance", 878: "Sci-Fi", 10770: "TV Movie",
+  53: "Thriller", 10752: "War", 37: "Western"
+};
+
+async function fetchMoviesFromTMDB(filters = {}) {
+  let url = `https://api.themoviedb.org/3/discover/movie?api_key=__TMDB_API_KEY__&language=en-US&page=1&sort_by=popularity.desc`;
+  
+  if (filters.yearRange && filters.yearRange.max !== 2026) {
+    url += `&primary_release_date.gte=${filters.yearRange.min}-01-01&primary_release_date.lte=${filters.yearRange.max}-12-31`;
+  }
+  if (filters.runtime && filters.runtime.max < 300) {
+    url += `&with_runtime.gte=${filters.runtime.min}&with_runtime.lte=${filters.runtime.max}`;
+  }
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!data.results) return [];
+    
+    return data.results.map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      year: parseInt(movie.release_date?.split('-')[0]) || 2024,
+      runtime: movie.runtime || 120,
+      rating: movie.vote_average,
+      votes: movie.vote_count,
+      genres: movie.genre_ids.map(id => TMDB_GENRE_MAP[id]).filter(Boolean),
+      moods: [],
+      platforms: ["Netflix", "Prime"],
+      occasions: [],
+      categories: [],
+      actors: [],
+      director: "TBD",
+      poster: movie.poster_path ? `${TMDB_IMAGE_BASE}/w300${movie.poster_path}` : '',
+      backdrop: movie.backdrop_path ? `${TMDB_IMAGE_BASE}/w1280${movie.backdrop_path}` : '',
+      overview: movie.overview || 'No description available.',
+      trailer: "",
+      is_original: true,
+      is_sequel: false,
+      sequel_number: 0,
+      posterColor: "#1A1A1A",
+      posterAccent: "#0A0A14"
+    }));
+  } catch (error) {
+    console.error('TMDB fetch failed:', error);
+    return [];
+  }
+}
+
+async function fetchMovieDetails(tmdbId) {
+  const [detailsRes, creditsRes, videosRes] = await Promise.all([
+    fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=__TMDB_API_KEY__`),
+    fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/credits?api_key=__TMDB_API_KEY__`),
+    fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/videos?api_key=__TMDB_API_KEY__`)
+  ]);
+  
+  const details = await detailsRes.json();
+  const credits = await creditsRes.json();
+  const videos = await videosRes.json();
+  
+  const trailer = videos.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+  const director = credits.crew?.find(p => p.job === 'Director');
+  
+  return {
+    runtime: details.runtime || 120,
+    genres: details.genres?.map(g => g.name) || [],
+    director: director?.name || 'Unknown',
+    actors: (credits.cast?.slice(0, 5) || []).map(a => ({ id: a.id, name: a.name })),
+    trailer: trailer?.key || ''
+  };
+}
 
 const CURATED_LISTS = [
     { id: 1, title: "Best Psychological Thrillers", description: "Mind-bending films that will keep you guessing", curator: "Sarah M.", avatar: "SM", movieCount: 8, movies: [7,15,18,3,10], tags: ["Psychological","Thriller"], color: "from-purple-900/60 to-blue-900/60" },
@@ -688,14 +741,31 @@ const app = {
         moodSearch: ''
     },
 
-    init() {
+    async init() {
+    this.updateAuthUI();
+    this.updateWatchlistBadge();
+    this.navigate('home');
+    
+    if (this.state.user) {
+        await this.loadWatchlist();
+    }
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+        this.state.user = {
+            id: session.user.id,
+            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+            email: session.user.email
+        };
+        localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
         this.updateAuthUI();
-        this.updateWatchlistBadge();
-        this.navigate('home');
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') { this.closeModal(); this.closeTrailer(); this.closeAuthModal(); }
-        });
-    },
+        await this.loadWatchlist();
+    }
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { this.closeModal(); this.closeTrailer(); this.closeAuthModal(); }
+    });
+}
 
     toggleMobileMenu() {
         document.getElementById('mobile-menu').classList.toggle('hidden');
@@ -721,228 +791,67 @@ const app = {
     },
 
     // ==================== AUTH SYSTEM ====================
-    updateAuthUI() {
-        const navAuth = document.getElementById('auth-nav');
-        const mobileAuth = document.getElementById('mobile-auth-menu');
+    async handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+        this.showToast(error.message);
+        return;
+    }
+    
+    this.state.user = { 
+        id: data.user.id, 
+        name: data.user.user_metadata?.name || email.split('@')[0], 
+        email: data.user.email 
+    };
+    localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
+    this.closeAuthModal();
+    this.updateAuthUI();
+    this.showToast(`Welcome back, ${this.state.user.name}!`);
+    if (this.state.page === 'watchlist') this.navigate('watchlist');
+}
 
-        if (this.state.user) {
-            const initials = this.state.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            navAuth.innerHTML = `
-                <div class="hidden sm:flex items-center gap-3">
-                    <span class="text-sm text-vr-text-secondary">${this.state.user.name}</span>
-                    <div class="w-8 h-8 rounded-full bg-vr-red flex items-center justify-center text-xs font-bold">${initials}</div>
-                    <button onclick="app.logout()" class="text-sm text-vr-text-tertiary hover:text-vr-text-primary transition-colors">Log Out</button>
-                </div>
-            `;
-            if (mobileAuth) mobileAuth.innerHTML = `
-                <div class="px-3 py-2 text-vr-text-secondary text-sm">${this.state.user.name}</div>
-                <button onclick="app.logout(); app.toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-vr-red hover:text-vr-red-hover">Log Out</button>
-            `;
-        } else {
-            navAuth.innerHTML = `
-                <div class="hidden sm:flex items-center gap-3">
-                    <button onclick="app.openAuth('login')" class="text-sm text-vr-text-secondary hover:text-vr-text-primary transition-colors font-medium">Log In</button>
-                    <button onclick="app.openAuth('signup')" class="px-4 py-2 bg-vr-red hover:bg-vr-red-hover text-white text-sm font-medium rounded-lg transition-all">Sign Up</button>
-                </div>
-            `;
-            if (mobileAuth) mobileAuth.innerHTML = `
-                <button onclick="app.openAuth('login'); app.toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-vr-text-secondary hover:text-vr-text-primary">Log In</button>
-                <button onclick="app.openAuth('signup'); app.toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-vr-red">Sign Up</button>
-            `;
-        }
-    },
+async handleSignup() {
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    
+    const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { name } }
+    });
+    
+    if (error) {
+        this.showToast(error.message);
+        return;
+    }
+    
+    this.state.user = { id: data.user.id, name, email };
+    localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
+    this.closeAuthModal();
+    this.updateAuthUI();
+    this.showToast(`Account created! Welcome, ${name}!`);
+}
 
-    openAuth(mode) {
-        this.state.authMode = mode;
-        const modal = document.getElementById('auth-modal');
-        const content = document.getElementById('auth-modal-content');
+async handleSSO(provider) {
+    const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin }
+    });
+    if (error) this.showToast(error.message);
+}
 
-        content.innerHTML = mode === 'login' ? this.renderLoginForm() : this.renderSignupForm();
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    },
-
-    closeAuthModal() {
-        document.getElementById('auth-modal').classList.add('hidden');
-        document.body.style.overflow = '';
-    },
-
-    renderLoginForm() {
-        return `
-            <div class="p-8">
-                <div class="text-center mb-8">
-                    <div class="w-12 h-12 bg-vr-red rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-film text-white text-lg"></i>
-                    </div>
-                    <h2 class="font-playfair text-2xl font-bold mb-1">Welcome Back</h2>
-                    <p class="text-vr-text-secondary text-sm">Sign in to access your watchlist</p>
-                </div>
-
-                <form onsubmit="event.preventDefault(); app.handleLogin();" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Email</label>
-                        <input type="email" id="login-email" class="auth-input" placeholder="you@example.com" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Password</label>
-                        <input type="password" id="login-password" class="auth-input" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="w-full py-3 bg-vr-red hover:bg-vr-red-hover text-white font-semibold rounded-xl transition-all">
-                        Log In
-                    </button>
-                </form>
-
-                <div class="divider-gradient my-6"></div>
-
-                <div class="space-y-3">
-                    <button onclick="app.handleSSO('google')" class="sso-btn">
-                        <i class="fab fa-google text-red-500"></i> Continue with Google
-                    </button>
-                    <button onclick="app.handleSSO('github')" class="sso-btn">
-                        <i class="fab fa-github text-white"></i> Continue with GitHub
-                    </button>
-                </div>
-
-                <p class="text-center text-sm text-vr-text-secondary mt-6">
-                    Don't have an account? 
-                    <button onclick="app.openAuth('signup')" class="text-vr-red hover:text-vr-red-hover font-medium">Sign Up</button>
-                </p>
-            </div>
-        `;
-    },
-
-    renderSignupForm() {
-        return `
-            <div class="p-8">
-                <div class="text-center mb-8">
-                    <div class="w-12 h-12 bg-vr-red rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-film text-white text-lg"></i>
-                    </div>
-                    <h2 class="font-playfair text-2xl font-bold mb-1">Create Account</h2>
-                    <p class="text-vr-text-secondary text-sm">Start your cinematic journey</p>
-                </div>
-
-                <form onsubmit="event.preventDefault(); app.handleSignup();" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Full Name</label>
-                        <input type="text" id="signup-name" class="auth-input" placeholder="John Doe" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Email</label>
-                        <input type="email" id="signup-email" class="auth-input" placeholder="you@example.com" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Password</label>
-                        <input type="password" id="signup-password" class="auth-input" placeholder="Min 8 characters" minlength="8" required>
-                    </div>
-                    <button type="submit" class="w-full py-3 bg-vr-red hover:bg-vr-red-hover text-white font-semibold rounded-xl transition-all">
-                        Create Account
-                    </button>
-                </form>
-
-                <div class="divider-gradient my-6"></div>
-
-                <div class="space-y-3">
-                    <button onclick="app.handleSSO('google')" class="sso-btn">
-                        <i class="fab fa-google text-red-500"></i> Continue with Google
-                    </button>
-                    <button onclick="app.handleSSO('github')" class="sso-btn">
-                        <i class="fab fa-github text-white"></i> Continue with GitHub
-                    </button>
-                </div>
-
-                <p class="text-center text-sm text-vr-text-secondary mt-6">
-                    Already have an account? 
-                    <button onclick="app.openAuth('login')" class="text-vr-red hover:text-vr-red-hover font-medium">Log In</button>
-                </p>
-            </div>
-        `;
-    },
-
-    handleLogin() {
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-
-        // Demo: accept any valid-looking credentials or check stored users
-        const storedUsers = JSON.parse(localStorage.getItem('vibereel_users') || '[]');
-        const user = storedUsers.find(u => u.email === email);
-
-        if (user && user.password === password) {
-            this.state.user = { id: user.id, name: user.name, email: user.email };
-            localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
-            this.closeAuthModal();
-            this.updateAuthUI();
-            this.showToast(`Welcome back, ${user.name}!`);
-            if (this.state.page === 'watchlist') this.navigate('watchlist');
-        } else if (!user && email.includes('@') && password.length >= 6) {
-            // Demo fallback: create on the fly for testing
-            const newUser = { id: Date.now(), name: email.split('@')[0], email, password };
-            storedUsers.push(newUser);
-            localStorage.setItem('vibereel_users', JSON.stringify(storedUsers));
-            this.state.user = { id: newUser.id, name: newUser.name, email: newUser.email };
-            localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
-            this.closeAuthModal();
-            this.updateAuthUI();
-            this.showToast(`Welcome, ${newUser.name}!`);
-        } else {
-            this.showToast('Invalid credentials. Try again.');
-        }
-    },
-
-    handleSignup() {
-        const name = document.getElementById('signup-name').value;
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-
-        const storedUsers = JSON.parse(localStorage.getItem('vibereel_users') || '[]');
-        if (storedUsers.find(u => u.email === email)) {
-            this.showToast('Email already registered. Please log in.');
-            return;
-        }
-
-        const newUser = { id: Date.now(), name, email, password };
-        storedUsers.push(newUser);
-        localStorage.setItem('vibereel_users', JSON.stringify(storedUsers));
-
-        this.state.user = { id: newUser.id, name, email };
-        localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
-        this.closeAuthModal();
-        this.updateAuthUI();
-        this.showToast(`Account created! Welcome, ${name}!`);
-    },
-
-    handleSSO(provider) {
-        // Simulate SSO with a mock user
-        const mockNames = { google: 'Alex Rivera', github: 'Jordan Chen' };
-        const mockEmails = { google: 'alex.rivera@gmail.com', github: 'jordan.chen@github.com' };
-
-        const newUser = { 
-            id: Date.now(), 
-            name: mockNames[provider], 
-            email: mockEmails[provider],
-            provider 
-        };
-
-        const storedUsers = JSON.parse(localStorage.getItem('vibereel_users') || '[]');
-        if (!storedUsers.find(u => u.email === newUser.email)) {
-            storedUsers.push(newUser);
-            localStorage.setItem('vibereel_users', JSON.stringify(storedUsers));
-        }
-
-        this.state.user = { id: newUser.id, name: newUser.name, email: newUser.email };
-        localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
-        this.closeAuthModal();
-        this.updateAuthUI();
-        this.showToast(`Signed in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}!`);
-    },
-
-    logout() {
-        this.state.user = null;
-        localStorage.removeItem('vibereel_user');
-        this.updateAuthUI();
-        this.showToast('Logged out successfully');
-        if (this.state.page === 'watchlist') this.navigate('home');
-    },
+async logout() {
+    await supabase.auth.signOut();
+    this.state.user = null;
+    localStorage.removeItem('vibereel_user');
+    this.updateAuthUI();
+    this.showToast('Logged out successfully');
+    if (this.state.page === 'watchlist') this.navigate('home');
+}
 
     // ==================== RENDERERS ====================
     renderHome() {
@@ -1783,65 +1692,59 @@ const app = {
     },
 
     // ==================== SEARCH ALGORITHM ====================
-    generateRecommendations() {
-        const f = this.state.filters;
-        let results = [...MOCK_MOVIES];
-
-        results = results.filter(m => m.runtime >= f.runtime.min && m.runtime <= f.runtime.max);
-        results = results.filter(m => m.year >= f.yearRange.min && m.year <= f.yearRange.max);
-
-        if (f.platforms.length > 0 && !f.platforms.includes('Any')) {
-            results = results.filter(m => m.platforms.some(p => f.platforms.includes(p)));
-        }
-
+    async generateRecommendations() {
+    const f = this.state.filters;
+    
+    document.getElementById('app').innerHTML = `
+        <div class="flex items-center justify-center min-h-[60vh]">
+            <div class="text-center">
+                <div class="loader mx-auto mb-4"></div>
+                <p class="text-vr-text-secondary">Finding movies for your vibe...</p>
+            </div>
+        </div>
+    `;
+    
+    try {
+        let movies = await fetchMoviesFromTMDB(f);
+        
         if (f.moods.length > 0) {
-            results = results.filter(m => m.moods.some(mood => f.moods.includes(mood)));
-        }
-
-        if (f.occasions.length > 0) {
-            results = results.filter(m => m.occasions.some(o => f.occasions.includes(o)));
-        }
-
-        if (f.actors.length > 0) {
-            results = results.filter(m => m.actors.some(a => f.actors.includes(a.id)));
-        }
-
-        if (f.typePreference === 'original') results = results.filter(m => m.is_original && !m.is_sequel);
-        else if (f.typePreference === 'remake') results = results.filter(m => !m.is_original);
-        else if (f.typePreference === 'both') results = results.filter(m => m.is_original || !m.is_original);
-
-        if (f.sequelPreference === 'first_only') results = results.filter(m => !m.is_sequel);
-        else if (f.sequelPreference === 'sequels_only') results = results.filter(m => m.is_sequel);
-        else if (f.sequelPreference === 'complete') results = results.filter(m => m.is_sequel);
-
-        if (f.categories.length > 0) {
-            results = results.filter(m => m.categories.some(c => f.categories.includes(c)));
-        }
-
-        results = results.map(m => {
-            let score = m.rating * 0.4 + (Math.log(m.votes) / Math.log(10)) * 0.3;
-            if (f.moods.length > 0) {
-                const moodMatches = m.moods.filter(mood => f.moods.includes(mood)).length;
-                score += moodMatches * 0.3;
+            const moodToGenre = {
+                "Action": "Action", "Comedy": "Comedy", "Drama": "Drama",
+                "Horror": "Horror", "Romance": "Romance", "Thriller": "Thriller",
+                "Adventure": "Adventure", "Sci-Fi": "Science Fiction",
+                "Fantasy": "Fantasy", "Mystery": "Mystery", "Crime": "Crime",
+                "Documentary": "Documentary"
+            };
+            const targetGenres = f.moods.map(m => moodToGenre[m]).filter(Boolean);
+            if (targetGenres.length > 0) {
+                movies = movies.filter(m => m.genres.some(g => targetGenres.includes(g)));
             }
-            return { ...m, score };
-        }).sort((a, b) => b.score - a.score);
-
-        if (results.length < 3 && f.moods.length > 0) {
-            let relaxed = [...MOCK_MOVIES];
-            relaxed = relaxed.filter(m => m.runtime >= f.runtime.min && m.runtime <= f.runtime.max);
-            relaxed = relaxed.filter(m => m.year >= f.yearRange.min && m.year <= f.yearRange.max);
-            if (f.platforms.length > 0 && !f.platforms.includes('Any')) {
-                relaxed = relaxed.filter(m => m.platforms.some(p => f.platforms.includes(p)));
-            }
-            relaxed = relaxed.map(m => ({ ...m, score: m.rating * 0.5 + (Math.log(m.votes) / Math.log(10)) * 0.3 }));
-            relaxed = relaxed.sort((a, b) => b.score - a.score);
-            results = [...new Map([...results, ...relaxed].map(m => [m.id, m])).values()];
         }
-
-        this.state.results = results;
+        
+        if (movies.length > 0) {
+            const enriched = await Promise.all(
+                movies.slice(0, 12).map(async m => {
+                    try {
+                        const details = await fetchMovieDetails(m.id);
+                        return { ...m, ...details };
+                    } catch (e) {
+                        return m;
+                    }
+                })
+            );
+            this.state.results = enriched;
+        } else {
+            this.state.results = movies;
+        }
+        
         this.navigate('results');
-    },
+    } catch (error) {
+        console.error('Search failed:', error);
+        this.showToast('Could not load movies. Please try again.');
+        this.state.results = [];
+        this.navigate('results');
+    }
+}
 
     // ==================== INTERACTIONS ====================
     showSurprise() {
@@ -2023,21 +1926,52 @@ const app = {
         document.body.style.overflow = 'hidden';
     },
 
-    toggleWatchlist(id) {
-        const idx = this.state.watchlist.indexOf(id);
-        if (idx > -1) {
-            this.state.watchlist.splice(idx, 1);
-            this.showToast('Removed from watchlist');
-        } else {
-            this.state.watchlist.push(id);
-            this.showToast('Added to watchlist');
-        }
-        localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
-        this.updateWatchlistBadge();
+    async toggleWatchlist(movieId) {
+    if (!this.state.user) {
+        this.openAuth('login');
+        return;
+    }
+    
+    const { data: existing } = await supabase
+        .from('watchlist')
+        .select('*')
+        .eq('movie_id', movieId)
+        .eq('user_id', this.state.user.id)
+        .single();
+    
+    if (existing) {
+        await supabase.from('watchlist').delete().eq('id', existing.id);
+        this.showToast('Removed from watchlist');
+    } else {
+        await supabase.from('watchlist').insert({
+            user_id: this.state.user.id,
+            movie_id: movieId
+        });
+        this.showToast('Added to watchlist');
+    }
+    
+    const { data } = await supabase
+        .from('watchlist')
+        .select('movie_id')
+        .eq('user_id', this.state.user.id);
+    
+    this.state.watchlist = data?.map(w => w.movie_id) || [];
+    localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
+    this.updateWatchlistBadge();
+    
+    if (this.state.page === 'watchlist') this.navigate('watchlist');
+    else if (this.state.page === 'results') this.navigate('results');
+}
 
-        if (this.state.page === 'watchlist') this.navigate('watchlist');
-        else if (this.state.page === 'results') this.navigate('results');
-    },
+async loadWatchlist() {
+    if (!this.state.user) return;
+    const { data } = await supabase
+        .from('watchlist')
+        .select('movie_id')
+        .eq('user_id', this.state.user.id);
+    this.state.watchlist = data?.map(w => w.movie_id) || [];
+    localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
+}
 
     updateWatchlistBadge() {
         const badge = document.getElementById('watchlist-badge');
