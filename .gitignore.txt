@@ -1,0 +1,11 @@
+# Never commit files with real secrets
+secrets.js
+config.js
+.env
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.log

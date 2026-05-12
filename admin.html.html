@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeReel Admin — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'vr-bg-deep': '#080808',
+                        'vr-bg-card': '#111111',
+                        'vr-bg-secondary': '#191919',
+                        'vr-border': '#242424',
+                        'vr-border-elevated': '#2A2A2A',
+                        'vr-red': '#C0392B',
+                        'vr-red-hover': '#E74C3C',
+                        'vr-gold': '#F5C518',
+                        'vr-text-primary': '#EFEFEF',
+                        'vr-text-secondary': '#AAAAAA',
+                        'vr-text-tertiary': '#666666',
+                        'vr-text-muted': '#555555',
+                        'vr-text-ghost': '#333333',
+                        'vr-badge-cult': '#7B2FBE',
+                        'vr-badge-gem': '#1A7A4A',
+                        'vr-badge-classic': '#8B6914',
+                        'vr-badge-blockbuster': '#0D4F8B',
+                        'vr-badge-award': '#8B0000',
+                    },
+                    fontFamily: {
+                        'playfair': ['"Playfair Display"', 'serif'],
+                        'dmsans': ['"DM Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --vr-bg-deep: #080808; --vr-bg-card: #111111; --vr-bg-secondary: #191919;
+            --vr-border: #242424; --vr-border-elevated: #2A2A2A;
+            --vr-red: #C0392B; --vr-red-hover: #E74C3C; --vr-gold: #F5C518;
+            --vr-text-primary: #EFEFEF; --vr-text-secondary: #AAAAAA;
+            --vr-text-tertiary: #666666; --vr-text-muted: #555555; --vr-text-ghost: #333333;
+            --vr-red-chip-bg: rgba(192,57,43,0.12); --vr-red-chip-border: rgba(192,57,43,0.30);
+            --vr-red-glow: rgba(192,57,43,0.40); --vr-gold-badge-bg: rgba(245,197,24,0.10);
+            --vr-gold-badge-border: rgba(245,197,24,0.20); --vr-modal-backdrop: rgba(0,0,0,0.85);
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--vr-bg-deep); color: var(--vr-text-primary); }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .film-strip { height: 3px; background: repeating-linear-gradient(90deg, #C0392B 0px, #C0392B 16px, transparent 16px, transparent 24px); }
+        .divider-gradient { height: 1px; background: linear-gradient(90deg, transparent, #242424 20%, #242424 80%, transparent); }
+
+        .sidebar-item { transition: all 0.15s; color: var(--vr-text-tertiary); }
+        .sidebar-item:hover { background: var(--vr-bg-secondary); color: var(--vr-text-primary); }
+        .sidebar-item.active { background: var(--vr-red-chip-bg); color: var(--vr-red); border-left: 2px solid var(--vr-red); }
+
+        .btn-primary { background: var(--vr-red); color: #fff; transition: all 0.2s; }
+        .btn-primary:hover { background: var(--vr-red-hover); transform: translateY(-1px); box-shadow: 0 4px 20px var(--vr-red-glow); }
+        .btn-secondary { background: var(--vr-bg-card); border: 1px solid var(--vr-border); color: var(--vr-text-tertiary); transition: all 0.2s; }
+        .btn-secondary:hover { border-color: #444; color: var(--vr-text-primary); }
+        .btn-destructive { background: var(--vr-bg-card); border: 1px solid var(--vr-badge-award); color: var(--vr-badge-award); transition: all 0.2s; }
+        .btn-destructive:hover { background: var(--vr-badge-award); color: #fff; }
+        .btn-ghost { background: transparent; border: 1px solid var(--vr-border); color: var(--vr-text-tertiary); transition: all 0.2s; }
+        .btn-ghost:hover { border-color: var(--vr-gold); color: var(--vr-gold); }
+
+        .admin-input { width: 100%; padding: 10px 14px; background: var(--vr-bg-secondary); border: 1px solid var(--vr-border); border-radius: 8px; color: var(--vr-text-primary); font-size: 0.875rem; transition: all 0.2s; }
+        .admin-input:focus { outline: none; border-color: var(--vr-red); box-shadow: 0 0 0 3px rgba(192,57,43,0.15); }
+        .admin-input::placeholder { color: var(--vr-text-ghost); }
+        .admin-label { display: block; font-size: 0.6875rem; font-weight: 600; color: var(--vr-text-muted); text-transform: uppercase; letter-spacing: 0.125em; margin-bottom: 6px; }
+
+        .table-container { background: var(--vr-bg-card); border: 1px solid var(--vr-border); border-radius: 10px; overflow: hidden; }
+        .table-header { background: var(--vr-bg-secondary); }
+        .table-header th { font-size: 0.6875rem; font-weight: 600; color: var(--vr-text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 16px; text-align: left; }
+        .table-row { background: var(--vr-bg-card); border-bottom: 1px solid var(--vr-border); transition: background 0.15s; }
+        .table-row:nth-child(even) { background: var(--vr-bg-secondary); }
+        .table-row:hover { background: rgba(192,57,43,0.06); }
+        .table-row td { padding: 14px 16px; font-size: 0.875rem; color: var(--vr-text-primary); }
+
+        .badge-premium { background: var(--vr-gold-badge-bg); border: 1px solid var(--vr-gold-badge-border); color: var(--vr-gold); }
+        .badge-free { background: var(--vr-bg-secondary); border: 1px solid var(--vr-border); color: var(--vr-text-muted); }
+        .badge-suspended { background: rgba(139,0,0,0.15); border: 1px solid rgba(139,0,0,0.30); color: var(--vr-badge-award); }
+        .badge-active { background: rgba(26,122,74,0.15); border: 1px solid rgba(26,122,74,0.25); color: var(--vr-badge-gem); }
+        .badge-super { background: var(--vr-red-chip-bg); border: 1px solid var(--vr-red-chip-border); color: var(--vr-red); }
+        .badge-admin { background: rgba(139,105,20,0.15); border: 1px solid rgba(139,105,20,0.25); color: var(--vr-badge-classic); }
+        .badge-moderator { background: rgba(123,47,190,0.15); border: 1px solid rgba(123,47,190,0.25); color: var(--vr-badge-cult); }
+        .badge-viewer { background: var(--vr-bg-secondary); border: 1px solid var(--vr-border); color: var(--vr-text-muted); }
+
+        .kpi-card { background: var(--vr-bg-card); border: 1px solid var(--vr-border); border-radius: 10px; padding: 20px; transition: background 0.2s; }
+        .kpi-card:hover { background: var(--vr-bg-secondary); }
+        .kpi-value { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 28px; color: var(--vr-text-primary); }
+        .kpi-label { font-size: 0.6875rem; font-weight: 600; color: var(--vr-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+        .trend-up { color: var(--vr-badge-gem); }
+        .trend-down { color: var(--vr-badge-award); }
+
+        .chart-container { background: var(--vr-bg-card); border: 1px solid var(--vr-border); border-radius: 10px; padding: 24px; }
+        .tab-btn { padding: 8px 16px; font-size: 0.875rem; font-weight: 500; color: var(--vr-text-tertiary); border-bottom: 2px solid transparent; transition: all 0.2s; cursor: pointer; background: none; }
+        .tab-btn:hover { color: var(--vr-text-primary); }
+        .tab-btn.active { color: var(--vr-text-primary); border-bottom-color: var(--vr-red); }
+
+        .quick-action { background: var(--vr-bg-secondary); border: 1px solid var(--vr-border); border-radius: 8px; padding: 12px 16px; color: var(--vr-text-primary); font-size: 0.875rem; font-weight: 500; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .quick-action:hover { background: var(--vr-border-elevated); border-left: 2px solid var(--vr-red); }
+
+        .activity-item { padding: 14px 16px; border-bottom: 1px solid var(--vr-border); transition: background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background: var(--vr-bg-secondary); }
+        .activity-bar { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; }
+
+        .page-transition { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; z-index: 100; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .modal-overlay { position: fixed; inset: 0; background: var(--vr-modal-backdrop); backdrop-filter: blur(8px); z-index: 90; display: none; }
+        .modal-overlay.show { display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--vr-bg-card); border: 1px solid var(--vr-border); border-radius: 16px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+
+        .heatmap-cell { width: 48px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 1px solid var(--vr-bg-deep); }
+
+        .genre-tag { padding: 3px 10px; background: var(--vr-bg-secondary); border: 1px solid var(--vr-border-elevated); border-radius: 4px; font-size: 0.6875rem; color: #888; font-weight: 500; }
+        .mood-pill { padding: 3px 10px; background: var(--vr-red-chip-bg); border: 1px solid var(--vr-red-chip-border); border-radius: 4px; font-size: 0.6875rem; color: var(--vr-text-primary); font-weight: 500; }
+
+        .pagination-btn { padding: 6px 12px; background: var(--vr-bg-secondary); border: 1px solid var(--vr-border); border-radius: 6px; color: var(--vr-text-tertiary); font-size: 0.8125rem; transition: all 0.15s; }
+        .pagination-btn:hover { border-color: #444; color: var(--vr-text-primary); }
+        .pagination-btn.active { background: var(--vr-red); color: #fff; border-color: var(--vr-red); }
+
+        .filter-pill { padding: 6px 14px; background: var(--vr-bg-secondary); border: 1px solid var(--vr-border); border-radius: 9999px; font-size: 0.8125rem; color: var(--vr-text-tertiary); transition: all 0.15s; cursor: pointer; }
+        .filter-pill:hover { border-color: #444; color: var(--vr-text-primary); }
+        .filter-pill.active { background: var(--vr-red-chip-bg); border-color: var(--vr-red); color: var(--vr-text-primary); }
+
+        .section-label { font-size: 0.6875rem; font-weight: 600; color: var(--vr-text-muted); text-transform: uppercase; letter-spacing: 0.125em; }
+
+        .form-section-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--vr-text-primary); }
+
+        .checkbox-custom { width: 18px; height: 18px; border: 1px solid var(--vr-border); border-radius: 4px; background: var(--vr-bg-card); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .checkbox-custom.checked { background: var(--vr-red); border-color: var(--vr-red); }
+        .checkbox-custom.checked::after { content: '\2713'; color: #fff; font-size: 11px; font-weight: bold; }
+
+        .toggle-track { width: 40px; height: 22px; border-radius: 11px; background: var(--vr-border); position: relative; cursor: pointer; transition: background 0.2s; }
+        .toggle-track.on { background: var(--vr-red); }
+        .toggle-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--vr-text-muted); position: absolute; top: 2px; left: 2px; transition: all 0.2s; }
+        .toggle-track.on .toggle-thumb { left: 20px; background: #fff; }
+
+        .scroll-hide::-webkit-scrollbar { width: 6px; }
+        .scroll-hide::-webkit-scrollbar-track { background: var(--vr-bg-deep); }
+        .scroll-hide::-webkit-scrollbar-thumb { background: var(--vr-border); border-radius: 3px; }
+        .scroll-hide::-webkit-scrollbar-thumb:hover { background: var(--vr-border-elevated); }
+    </style>
+</head>
+<body class="bg-vr-bg-deep text-vr-text-primary min-h-screen font-dmsans">
+
+<!-- Login Page -->
+<div id="login-page" class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center gap-2.5 mb-4">
+                <div class="w-10 h-10 bg-vr-red rounded-xl flex items-center justify-center">
+                    <i class="fas fa-film text-white text-lg"></i>
+                </div>
+                <span class="font-playfair text-2xl font-black">Vibe<span class="text-vr-red">Reel</span></span>
+            </div>
+            <div class="film-strip w-32 mx-auto mb-4"></div>
+            <h1 class="font-playfair text-3xl font-bold mb-2">Admin Portal</h1>
+            <p class="text-vr-text-secondary text-sm font-light">Sign in to manage your platform</p>
+        </div>
+
+        <div class="bg-vr-bg-card rounded-2xl border border-vr-border p-8">
+            <form onsubmit="event.preventDefault(); adminApp.handleLogin();" class="space-y-5">
+                <div>
+                    <label class="admin-label">Email Address</label>
+                    <input type="email" id="admin-login-email" class="admin-input" placeholder="admin@vibereel.com" required>
+                </div>
+                <div>
+                    <label class="admin-label">Password</label>
+                    <input type="password" id="admin-login-password" class="admin-input" placeholder="••••••••" required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <div class="checkbox-custom checked" onclick="this.classList.toggle('checked')"></div>
+                        <span class="text-sm text-vr-text-secondary">Remember me</span>
+                    </label>
+                    <button type="button" class="text-sm text-vr-red hover:text-vr-red-hover">Forgot password?</button>
+                </div>
+                <button type="submit" class="w-full py-3 btn-primary rounded-xl font-semibold text-sm">Sign In</button>
+            </form>
+
+            <div class="divider-gradient my-6"></div>
+
+            <div class="space-y-3">
+                <button onclick="adminApp.handleSSO('google')" class="sso-btn">
+                    <i class="fab fa-google text-red-500"></i> Continue with Google
+                </button>
+                <button onclick="adminApp.handleSSO('github')" class="sso-btn">
+                    <i class="fab fa-github text-white"></i> Continue with GitHub
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center mt-6">
+            <button onclick="window.location.href='vibereel_prototype.html'" class="text-sm text-vr-text-muted hover:text-vr-text-secondary transition-colors">
+                <i class="fas fa-arrow-left mr-1"></i> Back to VibeReel
+            </button>
+        </div>
+
+        <div class="mt-6 p-4 rounded-xl border border-vr-border bg-vr-bg-card">
+            <p class="text-xs text-vr-text-muted mb-2 font-semibold uppercase tracking-wider">Demo Credentials</p>
+            <div class="space-y-1 text-xs text-vr-text-secondary font-mono">
+                <p><span class="text-vr-red">super_admin</span> / admin@vibereel.com / admin123</p>
+                <p><span class="text-vr-badge-classic">admin</span> / manager@vibereel.com / admin123</p>
+                <p><span class="text-vr-badge-cult">moderator</span> / mod@vibereel.com / admin123</p>
+                <p><span class="text-vr-text-muted">viewer</span> / view@vibereel.com / admin123</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin App -->
+<div id="admin-app" class="hidden min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-60 bg-vr-bg-card border-r border-vr-border flex-shrink-0 flex flex-col fixed h-full z-40">
+        <div class="p-5 border-b border-vr-border">
+            <div class="flex items-center gap-2.5 mb-3">
+                <div class="w-8 h-8 bg-vr-red rounded-lg flex items-center justify-center">
+                    <i class="fas fa-film text-white text-sm"></i>
+                </div>
+                <span class="font-playfair text-lg font-black">Vibe<span class="text-vr-red">Reel</span></span>
+            </div>
+            <div class="film-strip"></div>
+        </div>
+
+        <nav class="flex-1 py-4 overflow-y-auto scroll-hide" id="sidebar-nav">
+            <!-- Injected by role -->
+        </nav>
+
+        <div class="p-4 border-t border-vr-border">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-vr-red flex items-center justify-center text-xs font-bold" id="admin-avatar">SA</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate" id="admin-name">Super Admin</p>
+                    <p class="text-xs text-vr-text-muted truncate" id="admin-role-badge">Super Admin</p>
+                </div>
+            </div>
+            <button onclick="adminApp.logout()" class="mt-3 w-full py-2 text-xs text-vr-text-muted hover:text-vr-text-primary transition-colors text-left">
+                <i class="fas fa-sign-out-alt mr-1.5"></i>Log Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 ml-60">
+        <!-- Top Bar -->
+        <header class="h-16 bg-vr-bg-card border-b border-vr-border flex items-center justify-between px-6 sticky top-0 z-30">
+            <div class="film-strip absolute bottom-0 left-0 right-0"></div>
+            <h1 class="font-playfair text-xl font-bold" id="page-title">Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-vr-text-ghost text-sm"></i>
+                    <input type="text" placeholder="Search..." class="admin-input pl-9 w-64 text-sm py-2">
+                </div>
+                <button class="w-9 h-9 rounded-lg bg-vr-bg-secondary border border-vr-border flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary transition-colors relative">
+                    <i class="fas fa-bell"></i>
+                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-vr-red rounded-full text-[9px] font-bold flex items-center justify-center text-white">3</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main id="admin-content" class="p-6">
+            <!-- Injected by router -->
+        </main>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="admin-modal" class="modal-overlay" onclick="if(event.target===this)adminApp.closeModal()">
+    <div class="modal-content" id="admin-modal-body"></div>
+</div>
+
+<!-- Toast -->
+<div id="admin-toast" class="toast">
+    <div class="bg-vr-bg-card border border-vr-border rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3">
+        <i class="fas fa-check-circle text-vr-gold"></i>
+        <span id="admin-toast-msg" class="text-sm font-medium">Action completed</span>
+    </div>
+</div>
+
+<script>
+// ==================== MOCK DATA ====================
+const ADMIN_USERS = [
+    { id: 1, name: "Sarah Mitchell", email: "admin@vibereel.com", password: "admin123", role: "super_admin", avatar: "SM", lastLogin: "2026-05-11T10:30:00Z" },
+    { id: 2, name: "James Chen", email: "manager@vibereel.com", password: "admin123", role: "admin", avatar: "JC", lastLogin: "2026-05-10T14:20:00Z" },
+    { id: 3, name: "Maya Patel", email: "mod@vibereel.com", password: "admin123", role: "moderator", avatar: "MP", lastLogin: "2026-05-11T08:15:00Z" },
+    { id: 4, name: "David Kim", email: "view@vibereel.com", password: "admin123", role: "viewer", avatar: "DK", lastLogin: "2026-05-09T16:45:00Z" }
+];
+
+const REGULAR_USERS = [
+    { id: 101, name: "Alex Rivera", email: "alex.rivera@gmail.com", username: "alexrv", signupDate: "2026-01-15", lastActive: "2026-05-11", premium: true, searches: 47, watchlist: 12, status: "active", country: "US", device: "iPhone 15" },
+    { id: 102, name: "Jordan Chen", email: "jordan.chen@github.com", username: "jordanc", signupDate: "2026-02-03", lastActive: "2026-05-10", premium: false, searches: 23, watchlist: 5, status: "active", country: "CA", device: "MacBook Pro" },
+    { id: 103, name: "Emma Wilson", email: "emma.w@outlook.com", username: "emmaw", signupDate: "2026-01-28", lastActive: "2026-05-11", premium: true, searches: 89, watchlist: 34, status: "active", country: "UK", device: "Pixel 8" },
+    { id: 104, name: "Marcus Johnson", email: "mjohnson@yahoo.com", username: "mjohnson", signupDate: "2025-11-12", lastActive: "2026-04-28", premium: false, searches: 156, watchlist: 8, status: "suspended", country: "US", device: "Samsung S24" },
+    { id: 105, name: "Sophia Liu", email: "sophia.liu@proton.me", username: "sophial", signupDate: "2026-03-05", lastActive: "2026-05-11", premium: true, searches: 12, watchlist: 3, status: "active", country: "SG", device: "iPad Pro" },
+    { id: 106, name: "Carlos Mendez", email: "cmendez@gmail.com", username: "cmendez", signupDate: "2026-02-20", lastActive: "2026-05-09", premium: false, searches: 34, watchlist: 9, status: "active", country: "MX", device: "iPhone 14" },
+    { id: 107, name: "Aisha Patel", email: "aisha.p@hotmail.com", username: "aishap", signupDate: "2025-12-08", lastActive: "2026-05-08", premium: true, searches: 67, watchlist: 21, status: "active", country: "IN", device: "OnePlus 12" },
+    { id: 108, name: "Tom Harrison", email: "tom.h@icloud.com", username: "tomh", signupDate: "2026-04-01", lastActive: "2026-05-11", premium: false, searches: 8, watchlist: 2, status: "active", country: "AU", device: "MacBook Air" },
+    { id: 109, name: "Nina Kowalski", email: "nina.k@gmail.com", username: "ninak", signupDate: "2026-01-20", lastActive: "2026-03-15", premium: false, searches: 45, watchlist: 6, status: "suspended", country: "PL", device: "Galaxy Z" },
+    { id: 110, name: "Ryan O'Brien", email: "ryan.obrien@outlook.com", username: "ryanob", signupDate: "2026-03-18", lastActive: "2026-05-10", premium: true, searches: 28, watchlist: 15, status: "active", country: "IE", device: "iPhone 15 Pro" }
+];
+
+const MOVIES_ADMIN = [
+    { id: 1, title: "Inception", year: 2010, rating: 8.8, genres: ["Sci-Fi","Action","Thriller"], platforms: ["Netflix","Prime"], status: "active", clicks: 1247, watchlistAdds: 892, conversions: 156, poster: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=60&h=90&fit=crop" },
+    { id: 2, title: "The Dark Knight", year: 2008, rating: 9.0, genres: ["Action","Drama","Thriller"], platforms: ["HBO Max","Prime"], status: "active", clicks: 2103, watchlistAdds: 1456, conversions: 289, poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=60&h=90&fit=crop" },
+    { id: 3, title: "Parasite", year: 2019, rating: 8.5, genres: ["Drama","Thriller","Comedy"], platforms: ["Netflix","Hulu"], status: "active", clicks: 987, watchlistAdds: 678, conversions: 134, poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=60&h=90&fit=crop" },
+    { id: 4, title: "Spirited Away", year: 2001, rating: 8.6, genres: ["Animation","Adventure","Family"], platforms: ["Netflix","HBO Max"], status: "active", clicks: 756, watchlistAdds: 523, conversions: 89, poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=60&h=90&fit=crop" },
+    { id: 5, title: "The Matrix", year: 1999, rating: 8.7, genres: ["Sci-Fi","Action"], platforms: ["Netflix","Prime"], status: "active", clicks: 1834, watchlistAdds: 1201, conversions: 245, poster: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=60&h=90&fit=crop" },
+    { id: 6, title: "Pulp Fiction", year: 1994, rating: 8.9, genres: ["Crime","Drama"], platforms: ["Netflix","Paramount+"], status: "active", clicks: 1567, watchlistAdds: 1102, conversions: 198, poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4d2f2?w=60&h=90&fit=crop" },
+    { id: 7, title: "Get Out", year: 2017, rating: 7.8, genres: ["Horror","Mystery","Thriller"], platforms: ["Netflix","Prime"], status: "active", clicks: 623, watchlistAdds: 445, conversions: 67, poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=60&h=90&fit=crop" },
+    { id: 8, title: "La La Land", year: 2016, rating: 8.0, genres: ["Comedy","Drama","Music"], platforms: ["Netflix","Hulu"], status: "active", clicks: 1123, watchlistAdds: 789, conversions: 156, poster: "https://images.unsplash.com/photo-1517604931442-71053e3e2f3f?w=60&h=90&fit=crop" }
+];
+
+const ACTIVITY_FEED = [
+    { type: "signup", user: "Alex Rivera", action: "created an account", time: "2 min ago", color: "#1A7A4A" },
+    { type: "search", user: "Emma Wilson", action: "performed a search", time: "5 min ago", color: "#C0392B" },
+    { type: "conversion", user: "Jordan Chen", action: "clicked affiliate link for The Dark Knight", time: "12 min ago", color: "#F5C518" },
+    { type: "premium", user: "Sophia Liu", action: "upgraded to Premium", time: "18 min ago", color: "#7B2FBE" },
+    { type: "content", user: "Sarah Mitchell", action: "updated movie metadata for Inception", time: "25 min ago", color: "#8B6914" },
+    { type: "search", user: "Carlos Mendez", action: "performed a search", time: "32 min ago", color: "#C0392B" },
+    { type: "signup", user: "Ryan O'Brien", action: "created an account", time: "45 min ago", color: "#1A7A4A" },
+    { type: "conversion", user: "Aisha Patel", action: "clicked affiliate link for Parasite", time: "1 hr ago", color: "#F5C518" }
+];
+
+const SEARCH_LOGS = [
+    { id: 1, userId: 101, userName: "Alex Rivera", date: "2026-05-11 09:30", type: "movie", moods: ["Sci-Fi","Action"], platforms: ["Netflix"], occasions: ["Date Night"], results: 8, clicked: "Inception" },
+    { id: 2, userId: 103, userName: "Emma Wilson", date: "2026-05-11 09:15", type: "movie", moods: ["Drama","Thriller"], platforms: ["Prime","Netflix"], occasions: ["Rainy Day"], results: 12, clicked: "Parasite" },
+    { id: 3, userId: 102, userName: "Jordan Chen", date: "2026-05-10 22:45", type: "movie", moods: ["Action","Adventure"], platforms: ["HBO Max"], occasions: ["Movie Marathon"], results: 6, clicked: "The Dark Knight" },
+    { id: 4, userId: 105, userName: "Sophia Liu", date: "2026-05-10 20:10", type: "movie", moods: ["Romance","Comedy"], platforms: ["Netflix","Hulu"], occasions: ["Date Night"], results: 10, clicked: "La La Land" },
+    { id: 5, userId: 107, userName: "Aisha Patel", date: "2026-05-10 18:30", type: "movie", moods: ["Horror","Suspense"], platforms: ["Netflix"], occasions: ["Halloween"], results: 5, clicked: "Get Out" }
+];
+
+const AFFILIATE_DATA = [
+    { month: "Jan", affiliate: 320, ads: 120, premium: 180 },
+    { month: "Feb", affiliate: 380, ads: 135, premium: 195 },
+    { month: "Mar", affiliate: 450, ads: 148, premium: 220 },
+    { month: "Apr", affiliate: 520, ads: 160, premium: 245 },
+    { month: "May", affiliate: 610, ads: 175, premium: 280 },
+    { month: "Jun", affiliate: 580, ads: 168, premium: 265 }
+];
+
+const USER_GROWTH = [
+    { date: "Jan 1", newUsers: 45, churned: 8 }, { date: "Jan 8", newUsers: 62, churned: 12 }, { date: "Jan 15", newUsers: 78, churned: 10 },
+    { date: "Jan 22", newUsers: 55, churned: 15 }, { date: "Jan 29", newUsers: 89, churned: 9 }, { date: "Feb 5", newUsers: 95, churned: 11 },
+    { date: "Feb 12", newUsers: 110, churned: 14 }, { date: "Feb 19", newUsers: 125, churned: 18 }, { date: "Feb 26", newUsers: 140, churned: 12 },
+    { date: "Mar 5", newUsers: 155, churned: 16 }, { date: "Mar 12", newUsers: 170, churned: 20 }, { date: "Mar 19", newUsers: 185, churned: 15 },
+    { date: "Mar 26", newUsers: 200, churned: 18 }, { date: "Apr 2", newUsers: 220, churned: 22 }, { date: "Apr 9", newUsers: 245, churned: 19 },
+    { date: "Apr 16", newUsers: 260, churned: 25 }, { date: "Apr 23", newUsers: 280, churned: 21 }, { date: "Apr 30", newUsers: 310, churned: 28 },
+    { date: "May 7", newUsers: 335, churned: 24 }, { date: "May 11", newUsers: 350, churned: 20 }
+];
+
+const SEARCH_ACTIVITY = [
+    { day: "Mon", morning: 120, afternoon: 180, evening: 320, night: 45 },
+    { day: "Tue", morning: 140, afternoon: 200, evening: 350, night: 50 },
+    { day: "Wed", morning: 110, afternoon: 170, evening: 290, night: 40 },
+    { day: "Thu", morning: 160, afternoon: 220, evening: 380, night: 55 },
+    { day: "Fri", morning: 180, afternoon: 260, evening: 420, night: 70 },
+    { day: "Sat", morning: 200, afternoon: 300, evening: 480, night: 90 },
+    { day: "Sun", morning: 190, afternoon: 280, evening: 450, night: 80 }
+];
+
+const TRAFFIC_SOURCES = [
+    { source: "Direct", value: 35, color: "#C0392B" }, { source: "Google Search", value: 28, color: "#F5C518" },
+    { source: "Social Media", value: 18, color: "#7B2FBE" }, { source: "Referral", value: 12, color: "#1A7A4A" },
+    { source: "Email", value: 7, color: "#8B6914" }
+];
+
+const RETENTION_COHORTS = [
+    { cohort: "Jan 2026", d0: 100, d1: 72, d7: 58, d14: 45, d30: 38, d60: 32, d90: 28 },
+    { cohort: "Feb 2026", d0: 100, d1: 75, d7: 62, d14: 48, d30: 41, d60: 35, d90: null },
+    { cohort: "Mar 2026", d0: 100, d1: 78, d7: 65, d14: 52, d30: 44, d60: null, d90: null },
+    { cohort: "Apr 2026", d0: 100, d1: 80, d7: 68, d14: 55, d30: null, d60: null, d90: null },
+    { cohort: "May 2026", d0: 100, d1: 82, d7: null, d14: null, d30: null, d60: null, d90: null }
+];
+
+const PERMISSIONS = {
+    super_admin: { users: "full", content: "full", analytics: "full", settings: "full", curated: "full", monetization: "full" },
+    admin: { users: "view_edit", content: "full", analytics: "view", settings: "none", curated: "full", monetization: "view" },
+    moderator: { users: "none", content: "edit", analytics: "none", settings: "none", curated: "create_edit", monetization: "none" },
+    viewer: { users: "view", content: "view", analytics: "view", settings: "none", curated: "view", monetization: "view" }
+};
+
+const SIDEBAR_ITEMS = {
+    super_admin: [
+        { id: "dashboard", icon: "fa-chart-line", label: "Dashboard" },
+        { id: "users", icon: "fa-users", label: "Users" },
+        { id: "content", icon: "fa-film", label: "Content" },
+        { id: "analytics", icon: "fa-chart-bar", label: "Analytics" },
+        { id: "curated", icon: "fa-list", label: "Curated Lists" },
+        { id: "monetization", icon: "fa-dollar-sign", label: "Monetization" },
+        { id: "settings", icon: "fa-cog", label: "Settings" }
+    ],
+    admin: [
+        { id: "dashboard", icon: "fa-chart-line", label: "Dashboard" },
+        { id: "users", icon: "fa-users", label: "Users" },
+        { id: "content", icon: "fa-film", label: "Content" },
+        { id: "analytics", icon: "fa-chart-bar", label: "Analytics" },
+        { id: "curated", icon: "fa-list", label: "Curated Lists" },
+        { id: "monetization", icon: "fa-dollar-sign", label: "Monetization" }
+    ],
+    moderator: [
+        { id: "content", icon: "fa-film", label: "Content" },
+        { id: "curated", icon: "fa-list", label: "Curated Lists" }
+    ],
+    viewer: [
+        { id: "dashboard", icon: "fa-chart-line", label: "Dashboard" },
+        { id: "users", icon: "fa-users", label: "Users" },
+        { id: "content", icon: "fa-film", label: "Content" },
+        { id: "analytics", icon: "fa-chart-bar", label: "Analytics" },
+        { id: "curated", icon: "fa-list", label: "Curated Lists" },
+        { id: "monetization", icon: "fa-dollar-sign", label: "Monetization" }
+    ]
+};
+
+// ==================== ADMIN APP ====================
+const adminApp = {
+    state: {
+        user: JSON.parse(localStorage.getItem('vibereel_admin_user') || 'null'),
+        page: 'dashboard',
+        userTab: 'profile',
+        contentTab: 'movies',
+        selectedUsers: [],
+        charts: {}
+    },
+
+    init() {
+        if (this.state.user) {
+            this.showApp();
+        } else {
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('admin-app').classList.add('hidden');
+        }
+    },
+
+    showApp() {
+        document.getElementById('login-page').classList.add('hidden');
+        document.getElementById('admin-app').classList.remove('hidden');
+        this.renderSidebar();
+        this.updateUserHeader();
+        this.navigate('dashboard');
+    },
+
+    handleLogin() {
+        const email = document.getElementById('admin-login-email').value;
+        const password = document.getElementById('admin-login-password').value;
+        const user = ADMIN_USERS.find(u => u.email === email && u.password === password);
+
+        if (user) {
+            this.state.user = { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar };
+            localStorage.setItem('vibereel_admin_user', JSON.stringify(this.state.user));
+            this.showApp();
+            this.showToast(`Welcome back, ${user.name}`);
+        } else {
+            this.showToast('Invalid credentials. Please try again.');
+        }
+    },
+
+    handleSSO(provider) {
+        const user = ADMIN_USERS[0]; // Default to super_admin for demo
+        this.state.user = { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, provider };
+        localStorage.setItem('vibereel_admin_user', JSON.stringify(this.state.user));
+        this.showApp();
+        this.showToast(`Signed in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`);
+    },
+
+    logout() {
+        this.state.user = null;
+        localStorage.removeItem('vibereel_admin_user');
+        document.getElementById('admin-app').classList.add('hidden');
+        document.getElementById('login-page').classList.remove('hidden');
+        this.showToast('Logged out successfully');
+    },
+
+    updateUserHeader() {
+        if (!this.state.user) return;
+        document.getElementById('admin-name').textContent = this.state.user.name;
+        document.getElementById('admin-avatar').textContent = this.state.user.avatar;
+        const roleLabels = { super_admin: 'Super Admin', admin: 'Admin', moderator: 'Moderator', viewer: 'Viewer' };
+        document.getElementById('admin-role-badge').textContent = roleLabels[this.state.user.role];
+    },
+
+    renderSidebar() {
+        const nav = document.getElementById('sidebar-nav');
+        const items = SIDEBAR_ITEMS[this.state.user.role] || [];
+        nav.innerHTML = items.map(item => `
+            <button onclick="adminApp.navigate('${item.id}')" id="nav-${item.id}" 
+                class="sidebar-item w-full text-left px-5 py-3 text-sm font-medium flex items-center gap-3 ${item.id === this.state.page ? 'active' : ''}">
+                <i class="fas ${item.icon} w-5 text-center"></i>
+                ${item.label}
+            </button>
+        `).join('');
+    },
+
+    navigate(page) {
+        this.state.page = page;
+        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(`nav-${page}`)?.classList.add('active');
+
+        const titles = { dashboard: 'Dashboard', users: 'User Management', content: 'Content Management', analytics: 'Analytics', curated: 'Curated Lists', monetization: 'Monetization', settings: 'Settings' };
+        document.getElementById('page-title').textContent = titles[page] || page;
+
+        const content = document.getElementById('admin-content');
+        content.innerHTML = '<div class="flex items-center justify-center h-64"><div class="loader"></div></div>';
+
+        setTimeout(() => {
+            if (page === 'dashboard') content.innerHTML = this.renderDashboard();
+            else if (page === 'users') content.innerHTML = this.renderUsers();
+            else if (page === 'content') content.innerHTML = this.renderContent();
+            else if (page === 'analytics') content.innerHTML = this.renderAnalytics();
+            else if (page === 'curated') content.innerHTML = this.renderCurated();
+            else if (page === 'monetization') content.innerHTML = this.renderMonetization();
+            else if (page === 'settings') content.innerHTML = this.renderSettings();
+
+            if (page === 'dashboard') this.initDashboardCharts();
+            else if (page === 'analytics') this.initAnalyticsCharts();
+        }, 300);
+    },
+
+    // ==================== DASHBOARD ====================
+    renderDashboard() {
+        const perm = PERMISSIONS[this.state.user.role];
+        return `
+        <div class="page-transition space-y-6">
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                ${perm.analytics !== 'none' ? `
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Total Users</p>
+                    <p class="kpi-value">2,847</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up text-xs trend-up"></i>
+                        <span class="text-xs trend-up font-medium">+12.5%</span>
+                        <span class="text-xs text-vr-text-muted ml-1">vs last month</span>
+                    </div>
+                    <canvas id="spark1" class="w-full h-10 mt-3"></canvas>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Active Users (7d)</p>
+                    <p class="kpi-value">1,934</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up text-xs trend-up"></i>
+                        <span class="text-xs trend-up font-medium">+8.3%</span>
+                        <span class="text-xs text-vr-text-muted ml-1">vs last week</span>
+                    </div>
+                    <canvas id="spark2" class="w-full h-10 mt-3"></canvas>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Total Searches</p>
+                    <p class="kpi-value">18,492</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up text-xs trend-up"></i>
+                        <span class="text-xs trend-up font-medium">+22.1%</span>
+                        <span class="text-xs text-vr-text-muted ml-1">vs last month</span>
+                    </div>
+                    <canvas id="spark3" class="w-full h-10 mt-3"></canvas>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Search-to-Click Rate</p>
+                    <p class="kpi-value">28.4%</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-down text-xs trend-down"></i>
+                        <span class="text-xs trend-down font-medium">-1.2%</span>
+                        <span class="text-xs text-vr-text-muted ml-1">vs last month</span>
+                    </div>
+                    <canvas id="spark4" class="w-full h-10 mt-3"></canvas>
+                </div>
+                ` : '<div class="col-span-4 text-center py-12 text-vr-text-muted">Analytics access restricted</div>'}
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Charts Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    ${perm.analytics !== 'none' ? `
+                    <div class="chart-container">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-playfair text-lg font-bold">User Growth</h3>
+                            <div class="flex gap-2">
+                                <button class="filter-pill active text-xs py-1 px-3">30 Days</button>
+                                <button class="filter-pill text-xs py-1 px-3">90 Days</button>
+                                <button class="filter-pill text-xs py-1 px-3">1 Year</button>
+                            </div>
+                        </div>
+                        <canvas id="chart-user-growth" height="100"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="font-playfair text-lg font-bold mb-4">Search Activity by Time</h3>
+                        <canvas id="chart-search-activity" height="100"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="font-playfair text-lg font-bold mb-4">Revenue Breakdown</h3>
+                        <canvas id="chart-revenue" height="100"></canvas>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- Sidebar Column -->
+                <div class="space-y-6">
+                    <!-- Quick Actions -->
+                    <div class="bg-vr-bg-card rounded-xl border border-vr-border p-5">
+                        <p class="section-label mb-4">Quick Actions</p>
+                        <div class="space-y-2">
+                            ${perm.content !== 'none' ? `<button onclick="adminApp.navigate('content')" class="quick-action"><i class="fas fa-plus text-vr-red"></i> Add New Movie</button>` : ''}
+                            ${perm.curated !== 'none' ? `<button onclick="adminApp.navigate('curated')" class="quick-action"><i class="fas fa-list text-vr-red"></i> Create Curated List</button>` : ''}
+                            ${perm.users !== 'none' ? `<button onclick="adminApp.navigate('users')" class="quick-action"><i class="fas fa-envelope text-vr-red"></i> Send Email Blast</button>` : ''}
+                            <button class="quick-action"><i class="fas fa-file-export text-vr-red"></i> Generate Report</button>
+                            <button class="quick-action"><i class="fas fa-search text-vr-red"></i> View Recent Searches</button>
+                            ${perm.content !== 'none' ? `<button class="quick-action relative"><i class="fas fa-shield-alt text-vr-red"></i> Moderation Queue <span class="absolute right-3 w-5 h-5 bg-vr-red rounded-full text-[10px] font-bold flex items-center justify-center text-white">5</span></button>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed -->
+                    <div class="bg-vr-bg-card rounded-xl border border-vr-border overflow-hidden">
+                        <div class="p-5 border-b border-vr-border">
+                            <p class="section-label">Recent Activity</p>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto scroll-hide">
+                            ${ACTIVITY_FEED.map(item => `
+                                <div class="activity-item">
+                                    <div class="activity-bar" style="background: ${item.color}"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-vr-text-primary">
+                                            <span class="text-vr-red cursor-pointer hover:underline">${item.user}</span> ${item.action}
+                                        </p>
+                                        <p class="text-xs text-vr-text-muted mt-0.5">${item.time}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Traffic Sources -->
+                    ${perm.analytics !== 'none' ? `
+                    <div class="chart-container">
+                        <h3 class="font-playfair text-lg font-bold mb-4">Traffic Sources</h3>
+                        <canvas id="chart-traffic" height="180"></canvas>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>`;
+    },
+
+    initDashboardCharts() {
+        Chart.defaults.color = '#555555';
+        Chart.defaults.borderColor = '#242424';
+        Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+        // Sparklines
+        const sparkData = [[12,19,15,25,22,30,28],[8,12,10,18,15,22,20],[45,52,48,60,55,70,65],[28,26,29,27,25,28,26]];
+        sparkData.forEach((data, i) => {
+            const ctx = document.getElementById(`spark${i+1}`)?.getContext('2d');
+            if (!ctx) return;
+            new Chart(ctx, { type: 'line', data: { labels: data.map((_,j)=>j), datasets: [{ data, borderColor: '#C0392B', borderWidth: 1.5, fill: true, backgroundColor: 'rgba(192,57,43,0.08)', pointRadius: 0, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } } });
+        });
+
+        // User Growth
+        const ctx1 = document.getElementById('chart-user-growth')?.getContext('2d');
+        if (ctx1) {
+            new Chart(ctx1, { type: 'line', data: { labels: USER_GROWTH.map(d => d.date), datasets: [
+                { label: 'New Users', data: USER_GROWTH.map(d => d.newUsers), borderColor: '#C0392B', backgroundColor: 'rgba(192,57,43,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#C0392B', pointRadius: 3 },
+                { label: 'Churned Users', data: USER_GROWTH.map(d => d.churned), borderColor: '#F5C518', backgroundColor: 'rgba(245,197,24,0.06)', fill: true, tension: 0.4, pointBackgroundColor: '#F5C518', pointRadius: 3 }
+            ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#EFEFEF', font: { size: 12 } } } }, scales: { y: { grid: { color: '#242424' }, ticks: { color: '#555555' } }, x: { grid: { display: false }, ticks: { color: '#555555', maxTicksLimit: 8 } } } } });
+        }
+
+        // Search Activity
+        const ctx2 = document.getElementById('chart-search-activity')?.getContext('2d');
+        if (ctx2) {
+            new Chart(ctx2, { type: 'bar', data: { labels: SEARCH_ACTIVITY.map(d => d.day), datasets: [
+                { label: 'Morning', data: SEARCH_ACTIVITY.map(d => d.morning), backgroundColor: '#C0392B' },
+                { label: 'Afternoon', data: SEARCH_ACTIVITY.map(d => d.afternoon), backgroundColor: '#F5C518' },
+                { label: 'Evening', data: SEARCH_ACTIVITY.map(d => d.evening), backgroundColor: '#7B2FBE' },
+                { label: 'Night', data: SEARCH_ACTIVITY.map(d => d.night), backgroundColor: '#2A2A2A' }
+            ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#EFEFEF', font: { size: 12 } } } }, scales: { y: { grid: { color: '#242424' }, ticks: { color: '#555555' } }, x: { grid: { display: false }, ticks: { color: '#555555' } } } } });
+        }
+
+        // Revenue
+        const ctx3 = document.getElementById('chart-revenue')?.getContext('2d');
+        if (ctx3) {
+            new Chart(ctx3, { type: 'bar', data: { labels: AFFILIATE_DATA.map(d => d.month), datasets: [
+                { label: 'Affiliate', data: AFFILIATE_DATA.map(d => d.affiliate), backgroundColor: '#C0392B' },
+                { label: 'Ads', data: AFFILIATE_DATA.map(d => d.ads), backgroundColor: '#F5C518' },
+                { label: 'Premium', data: AFFILIATE_DATA.map(d => d.premium), backgroundColor: '#7B2FBE' }
+            ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#EFEFEF', font: { size: 12 } } } }, scales: { y: { grid: { color: '#242424' }, ticks: { color: '#555555' } }, x: { grid: { display: false }, ticks: { color: '#555555' } } } } });
+        }
+
+        // Traffic
+        const ctx4 = document.getElementById('chart-traffic')?.getContext('2d');
+        if (ctx4) {
+            new Chart(ctx4, { type: 'doughnut', data: { labels: TRAFFIC_SOURCES.map(d => d.source), datasets: [{ data: TRAFFIC_SOURCES.map(d => d.value), backgroundColor: TRAFFIC_SOURCES.map(d => d.color), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: '#555555', font: { size: 11 }, padding: 15, usePointStyle: true } } } } });
+        }
+    },
+
+    // ==================== USERS ====================
+    renderUsers() {
+        const perm = PERMISSIONS[this.state.user.role];
+        if (perm.users === 'none') return '<div class="text-center py-20 text-vr-text-muted">Access denied</div>';
+
+        return `
+        <div class="page-transition space-y-6">
+            <!-- Filters -->
+            <div class="bg-vr-bg-card rounded-xl border border-vr-border p-4 flex flex-wrap items-center gap-3">
+                <div class="relative flex-1 min-w-[200px]">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-vr-text-ghost text-sm"></i>
+                    <input type="text" placeholder="Search users..." class="admin-input pl-9 text-sm py-2" oninput="adminApp.filterUsers(this.value)">
+                </div>
+                <button class="filter-pill active">All</button>
+                <button class="filter-pill">Active</button>
+                <button class="filter-pill">Premium</button>
+                <button class="filter-pill">Suspended</button>
+                ${perm.users === 'full' || perm.users === 'view_edit' ? `
+                <button class="btn-primary px-4 py-2 rounded-lg text-sm ml-auto"><i class="fas fa-plus mr-2"></i>Add User</button>
+                ` : ''}
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="w-10"><div class="checkbox-custom" onclick="adminApp.toggleSelectAll()"></div></th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Signup Date</th>
+                            <th>Last Active</th>
+                            <th>Status</th>
+                            <th>Searches</th>
+                            <th>Watchlist</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        ${this.renderUserRows(REGULAR_USERS)}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-vr-text-muted">Showing 1-10 of 2,847 users</p>
+                <div class="flex gap-2">
+                    <button class="pagination-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">...</button>
+                    <button class="pagination-btn">285</button>
+                    <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>`;
+    },
+
+    renderUserRows(users) {
+        return users.map(u => {
+            const statusBadge = u.status === 'active' ? 'badge-active' : u.status === 'suspended' ? 'badge-suspended' : 'badge-free';
+            const statusText = u.status === 'active' ? 'Active' : u.status === 'suspended' ? 'Suspended' : 'Inactive';
+            const perm = PERMISSIONS[this.state.user.role];
+            return `
+            <tr class="table-row">
+                <td><div class="checkbox-custom" onclick="this.classList.toggle('checked')"></div></td>
+                <td>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-vr-bg-secondary border border-vr-border flex items-center justify-center text-xs font-bold text-vr-text-secondary">
+                            ${u.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                            <p class="font-medium text-sm">${u.name}</p>
+                            <p class="text-xs text-vr-text-muted">@${u.username}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-vr-text-secondary text-sm">${u.email}</td>
+                <td class="text-vr-text-secondary text-sm">${u.signupDate}</td>
+                <td class="text-vr-text-secondary text-sm">${u.lastActive}</td>
+                <td><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${statusBadge}">${statusText}</span></td>
+                <td class="text-sm">${u.searches}</td>
+                <td class="text-sm">${u.watchlist}</td>
+                <td class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                        <button onclick="adminApp.viewUser(${u.id})" class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary transition-colors" title="View"><i class="fas fa-eye text-xs"></i></button>
+                        ${perm.users === 'full' || perm.users === 'view_edit' ? `
+                        <button class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary transition-colors" title="Edit"><i class="fas fa-pen text-xs"></i></button>
+                        <button class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary transition-colors" title="Change Role"><i class="fas fa-crown text-xs"></i></button>
+                        ` : ''}
+                        ${perm.users === 'full' ? `
+                        <button class="w-8 h-8 rounded-lg hover:bg-vr-badge-award/20 flex items-center justify-center text-vr-badge-award hover:text-white transition-colors" title="Delete"><i class="fas fa-trash text-xs"></i></button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+            `;
+        }).join('');
+    },
+
+    filterUsers(query) {
+        const tbody = document.getElementById('users-table-body');
+        if (!tbody) return;
+        const filtered = REGULAR_USERS.filter(u => 
+            u.name.toLowerCase().includes(query.toLowerCase()) ||
+            u.email.toLowerCase().includes(query.toLowerCase()) ||
+            u.username.toLowerCase().includes(query.toLowerCase())
+        );
+        tbody.innerHTML = this.renderUserRows(filtered);
+    },
+
+    toggleSelectAll() {
+        document.querySelectorAll('.checkbox-custom').forEach(cb => cb.classList.toggle('checked'));
+    },
+
+    viewUser(id) {
+        const user = REGULAR_USERS.find(u => u.id === id);
+        if (!user) return;
+        const perm = PERMISSIONS[this.state.user.role];
+
+        document.getElementById('admin-modal-body').innerHTML = `
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-vr-bg-secondary border border-vr-border flex items-center justify-center text-lg font-bold text-vr-text-secondary">
+                            ${user.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                            <h2 class="font-playfair text-xl font-bold">${user.name}</h2>
+                            <p class="text-sm text-vr-text-muted">@${user.username} • ${user.email}</p>
+                        </div>
+                    </div>
+                    <button onclick="adminApp.closeModal()" class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary"><i class="fas fa-times"></i></button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-1 border-b border-vr-border mb-4">
+                    <button onclick="adminApp.setUserTab('profile')" id="utab-profile" class="tab-btn active">Profile</button>
+                    <button onclick="adminApp.setUserTab('searches')" id="utab-searches" class="tab-btn">Searches</button>
+                    <button onclick="adminApp.setUserTab('watchlist')" id="utab-watchlist" class="tab-btn">Watchlist</button>
+                    <button onclick="adminApp.setUserTab('conversions')" id="utab-conversions" class="tab-btn">Conversions</button>
+                </div>
+
+                <div id="user-tab-content">
+                    ${this.renderUserProfile(user)}
+                </div>
+            </div>
+        `;
+        document.getElementById('admin-modal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    },
+
+    setUserTab(tab) {
+        this.state.userTab = tab;
+        document.querySelectorAll('#admin-modal .tab-btn').forEach(t => t.classList.remove('active'));
+        document.getElementById(`utab-${tab}`)?.classList.add('active');
+        const userId = parseInt(document.querySelector('#admin-modal h2')?.dataset?.userId);
+        const user = REGULAR_USERS.find(u => u.id === userId) || REGULAR_USERS[0];
+        document.getElementById('user-tab-content').innerHTML = 
+            tab === 'profile' ? this.renderUserProfile(user) :
+            tab === 'searches' ? this.renderUserSearches(user) :
+            tab === 'watchlist' ? this.renderUserWatchlist(user) :
+            this.renderUserConversions(user);
+    },
+
+    renderUserProfile(user) {
+        return `
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                    <p class="text-[10px] font-semibold text-vr-text-muted uppercase tracking-wider mb-1">Total Searches</p>
+                    <p class="text-xl font-bold">${user.searches}</p>
+                </div>
+                <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                    <p class="text-[10px] font-semibold text-vr-text-muted uppercase tracking-wider mb-1">Watchlist</p>
+                    <p class="text-xl font-bold">${user.watchlist}</p>
+                </div>
+                <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                    <p class="text-[10px] font-semibold text-vr-text-muted uppercase tracking-wider mb-1">CTR</p>
+                    <p class="text-xl font-bold ${user.searches > 50 ? 'text-vr-badge-gem' : 'text-vr-red'}">${(user.searches > 0 ? (user.watchlist / user.searches * 100).toFixed(1) : 0)}%</p>
+                </div>
+                <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                    <p class="text-[10px] font-semibold text-vr-text-muted uppercase tracking-wider mb-1">Status</p>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${user.status === 'active' ? 'badge-active' : 'badge-suspended'}">${user.status}</span>
+                </div>
+            </div>
+            <div class="bg-vr-bg-secondary rounded-lg p-4 border border-vr-border">
+                <p class="text-[10px] font-semibold text-vr-text-muted uppercase tracking-wider mb-3">Account Details</p>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-vr-text-secondary">Country</span><span>${user.country}</span></div>
+                    <div class="flex justify-between"><span class="text-vr-text-secondary">Device</span><span>${user.device}</span></div>
+                    <div class="flex justify-between"><span class="text-vr-text-secondary">Premium</span><span class="${user.premium ? 'text-vr-gold' : 'text-vr-text-muted'}">${user.premium ? 'Yes' : 'No'}</span></div>
+                    <div class="flex justify-between"><span class="text-vr-text-secondary">Signup</span><span>${user.signupDate}</span></div>
+                </div>
+            </div>
+        </div>`;
+    },
+
+    renderUserSearches(user) {
+        const logs = SEARCH_LOGS.filter(l => l.userId === user.id);
+        if (logs.length === 0) return '<p class="text-sm text-vr-text-muted py-8 text-center">No search history</p>';
+        return `
+        <div class="space-y-3">
+            ${logs.map(log => `
+                <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-vr-text-muted">${log.date}</span>
+                        <span class="text-xs text-vr-text-muted">${log.results} results</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1 mb-2">
+                        ${log.moods.map(m => `<span class="mood-pill">${m}</span>`).join('')}
+                    </div>
+                    <p class="text-xs text-vr-text-secondary">Clicked: <span class="text-vr-text-primary">${log.clicked}</span></p>
+                </div>
+            `).join('')}
+        </div>`;
+    },
+
+    renderUserWatchlist(user) {
+        const watchlistMovies = [1,2,3,5,8,12,21].slice(0, user.watchlist);
+        return `
+        <div class="space-y-2">
+            ${watchlistMovies.map(mid => {
+                const movie = MOVIES_ADMIN.find(m => m.id === mid);
+                if (!movie) return '';
+                return `
+                <div class="flex items-center gap-3 bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                    <img src="${movie.poster}" class="w-10 h-14 rounded object-cover bg-vr-bg-deep" onerror="this.style.display='none'">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">${movie.title}</p>
+                        <p class="text-xs text-vr-text-muted">${movie.year} • ${movie.genres[0]}</p>
+                    </div>
+                    <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium badge-premium">${movie.platforms[0]}</span>
+                </div>`;
+            }).join('')}
+        </div>`;
+    },
+
+    renderUserConversions(user) {
+        return `
+        <div class="space-y-3">
+            <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium">Netflix — Inception</p>
+                        <p class="text-xs text-vr-text-muted">2026-05-11 09:35</p>
+                    </div>
+                    <span class="text-sm font-bold text-vr-gold">$2.40</span>
+                </div>
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium badge-active mt-2">Confirmed</span>
+            </div>
+            <div class="bg-vr-bg-secondary rounded-lg p-3 border border-vr-border">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium">Prime Video — The Dark Knight</p>
+                        <p class="text-xs text-vr-text-muted">2026-05-10 22:50</p>
+                    </div>
+                    <span class="text-sm font-bold text-vr-gold">$1.80</span>
+                </div>
+                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium badge-premium">Paid</span>
+            </div>
+        </div>`;
+    },
+
+    // ==================== CONTENT ====================
+    renderContent() {
+        const perm = PERMISSIONS[this.state.user.role];
+        if (perm.content === 'none') return '<div class="text-center py-20 text-vr-text-muted">Access denied</div>';
+
+        return `
+        <div class="page-transition space-y-6">
+            <div class="flex items-center justify-between">
+                <div class="flex gap-1 border-b border-vr-border">
+                    <button onclick="adminApp.setContentTab('movies')" id="ctab-movies" class="tab-btn active">Movies & TV</button>
+                    <button onclick="adminApp.setContentTab('pending')" id="ctab-pending" class="tab-btn">Pending Review</button>
+                    <button onclick="adminApp.setContentTab('hidden')" id="ctab-hidden" class="tab-btn">Hidden</button>
+                </div>
+                ${perm.content === 'full' ? `
+                <button onclick="adminApp.showAddMovieForm()" class="btn-primary px-4 py-2 rounded-lg text-sm"><i class="fas fa-plus mr-2"></i>Add Movie</button>
+                ` : ''}
+            </div>
+
+            <div class="bg-vr-bg-card rounded-xl border border-vr-border p-4 flex flex-wrap items-center gap-3">
+                <div class="relative flex-1 min-w-[200px]">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-vr-text-ghost text-sm"></i>
+                    <input type="text" placeholder="Search movies..." class="admin-input pl-9 text-sm py-2" oninput="adminApp.filterMovies(this.value)">
+                </div>
+                <button class="filter-pill active">All</button>
+                <button class="filter-pill">Active</button>
+                <button class="filter-pill">Hidden</button>
+            </div>
+
+            <div class="table-container">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Movie</th>
+                            <th>Year</th>
+                            <th>Rating</th>
+                            <th>Genres</th>
+                            <th>Platforms</th>
+                            <th>Clicks</th>
+                            <th>Conversions</th>
+                            <th>Status</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movies-table-body">
+                        ${this.renderMovieRows(MOVIES_ADMIN)}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+    },
+
+    renderMovieRows(movies) {
+        return movies.map(m => {
+            const perm = PERMISSIONS[this.state.user.role];
+            return `
+            <tr class="table-row">
+                <td>
+                    <div class="flex items-center gap-3">
+                        <img src="${m.poster}" class="w-8 h-12 rounded object-cover bg-vr-bg-deep" onerror="this.style.display='none'">
+                        <span class="font-medium text-sm">${m.title}</span>
+                    </div>
+                </td>
+                <td class="text-vr-text-secondary text-sm">${m.year}</td>
+                <td><span class="text-sm font-bold"><i class="fas fa-star text-vr-gold text-xs mr-1"></i>${m.rating}</span></td>
+                <td>
+                    <div class="flex flex-wrap gap-1">
+                        ${m.genres.slice(0,2).map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                    </div>
+                </td>
+                <td>
+                    <div class="flex gap-1">
+                        ${m.platforms.slice(0,2).map(p => `<span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium badge-premium">${p}</span>`).join('')}
+                    </div>
+                </td>
+                <td class="text-sm">${m.clicks.toLocaleString()}</td>
+                <td class="text-sm text-vr-gold font-medium">${m.conversions}</td>
+                <td><span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${m.status === 'active' ? 'badge-active' : 'badge-suspended'}">${m.status}</span></td>
+                <td class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                        <button class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary"><i class="fas fa-eye text-xs"></i></button>
+                        ${perm.content === 'full' || perm.content === 'edit' ? `
+                        <button class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary"><i class="fas fa-pen text-xs"></i></button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+            `;
+        }).join('');
+    },
+
+    filterMovies(query) {
+        const tbody = document.getElementById('movies-table-body');
+        if (!tbody) return;
+        const filtered = MOVIES_ADMIN.filter(m => m.title.toLowerCase().includes(query.toLowerCase()));
+        tbody.innerHTML = this.renderMovieRows(filtered);
+    },
+
+    setContentTab(tab) {
+        this.state.contentTab = tab;
+        document.querySelectorAll('#admin-content .tab-btn').forEach(t => t.classList.remove('active'));
+        document.getElementById(`ctab-${tab}`)?.classList.add('active');
+    },
+
+    showAddMovieForm() {
+        document.getElementById('admin-modal-body').innerHTML = `
+            <div class="p-6 max-h-[80vh] overflow-y-auto scroll-hide">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-playfair text-xl font-bold">Add New Movie</h2>
+                    <button onclick="adminApp.closeModal()" class="w-8 h-8 rounded-lg hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <p class="form-section-title mb-3">Basic Information</p>
+                        <div class="divider-gradient mb-4"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="col-span-2">
+                                <label class="admin-label">TMDB Movie ID</label>
+                                <div class="flex gap-2">
+                                    <input type="text" class="admin-input" placeholder="e.g. 27205">
+                                    <button class="btn-primary px-4 rounded-lg text-sm whitespace-nowrap">Auto-fill</button>
+                                </div>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="admin-label">Title</label>
+                                <input type="text" class="admin-input" placeholder="Movie title">
+                            </div>
+                            <div>
+                                <label class="admin-label">Release Year</label>
+                                <input type="number" class="admin-input" placeholder="2024">
+                            </div>
+                            <div>
+                                <label class="admin-label">Runtime (min)</label>
+                                <input type="number" class="admin-input" placeholder="120">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="admin-label">Overview</label>
+                                <textarea class="admin-input" rows="3" placeholder="Plot summary..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="form-section-title mb-3">Classification</p>
+                        <div class="divider-gradient mb-4"></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="admin-label">Type</label>
+                                <div class="flex gap-2">
+                                    <button class="filter-pill active flex-1 text-center">Movie</button>
+                                    <button class="filter-pill flex-1 text-center">TV Show</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="admin-label">Genres</label>
+                                <div class="flex flex-wrap gap-1">
+                                    ${['Action','Drama','Comedy','Sci-Fi','Horror','Thriller'].map(g => `<span class="genre-tag cursor-pointer hover:border-vr-red">${g}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="form-section-title mb-3">Streaming Links</p>
+                        <div class="divider-gradient mb-4"></div>
+                        <div class="space-y-2">
+                            ${['Netflix','Prime Video','Disney+','HBO Max'].map(p => `
+                                <div class="flex items-center gap-2">
+                                    <span class="w-24 text-xs text-vr-text-secondary">${p}</span>
+                                    <input type="text" class="admin-input text-sm py-2" placeholder="https://...">
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="adminApp.closeModal(); adminApp.showToast('Movie saved successfully')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-sm">Save Movie</button>
+                        <button onclick="adminApp.closeModal()" class="px-6 py-3 btn-secondary rounded-xl font-medium text-sm">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('admin-modal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    },
+
+    // ==================== ANALYTICS ====================
+    renderAnalytics() {
+        const perm = PERMISSIONS[this.state.user.role];
+        if (perm.analytics === 'none') return '<div class="text-center py-20 text-vr-text-muted">Access denied</div>';
+
+        return `
+        <div class="page-transition space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="chart-container">
+                    <h3 class="font-playfair text-lg font-bold mb-4">Top Performing Movies</h3>
+                    <div class="space-y-3">
+                        ${MOVIES_ADMIN.sort((a,b) => b.clicks - a.clicks).slice(0,5).map((m, i) => `
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs text-vr-text-muted w-4">${i+1}</span>
+                                <img src="${m.poster}" class="w-8 h-12 rounded object-cover bg-vr-bg-deep" onerror="this.style.display='none'">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">${m.title}</p>
+                                    <p class="text-xs text-vr-text-muted">${m.conversions} conversions</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-vr-gold">${m.clicks.toLocaleString()}</p>
+                                    <div class="w-24 h-1.5 bg-vr-bg-secondary rounded-full mt-1 overflow-hidden">
+                                        <div class="h-full bg-vr-red rounded-full" style="width: ${(m.clicks / 2103 * 100).toFixed(0)}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="font-playfair text-lg font-bold mb-4">User Retention Cohorts</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr>
+                                    <th class="text-left text-vr-text-muted py-2 pr-2">Cohort</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 0</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 1</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 7</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 14</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 30</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 60</th>
+                                    <th class="text-center text-vr-text-muted py-2 px-1">Day 90</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${RETENTION_COHORTS.map(c => `
+                                    <tr>
+                                        <td class="py-1 pr-2 text-vr-text-secondary font-medium">${c.cohort}</td>
+                                        ${['d0','d1','d7','d14','d30','d60','d90'].map(k => {
+                                            const val = c[k];
+                                            if (val === null) return '<td class="heatmap-cell" style="background:#191919;color:#333">—</td>';
+                                            let bg, color;
+                                            if (val >= 80) { bg = '#1A7A4A'; color = '#EFEFEF'; }
+                                            else if (val >= 50) { bg = '#8B6914'; color = '#EFEFEF'; }
+                                            else if (val >= 20) { bg = '#8B0000'; color = '#EFEFEF'; }
+                                            else { bg = 'rgba(139,0,0,0.4)'; color = '#AAAAAA'; }
+                                            return `<td class="heatmap-cell" style="background:${bg};color:${color}">${val}%</td>`;
+                                        }).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="font-playfair text-lg font-bold mb-4">Search Trends (30 Days)</h3>
+                <canvas id="chart-search-trends" height="80"></canvas>
+            </div>
+        </div>`;
+    },
+
+    initAnalyticsCharts() {
+        const ctx = document.getElementById('chart-search-trends')?.getContext('2d');
+        if (ctx) {
+            const data = Array.from({length: 30}, (_, i) => 200 + Math.floor(Math.random() * 300) + i * 5);
+            new Chart(ctx, { type: 'line', data: { labels: data.map((_,i) => `May ${i+1}`), datasets: [
+                { label: 'Searches', data, borderColor: '#C0392B', backgroundColor: 'rgba(192,57,43,0.08)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 4 }
+            ]}, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#242424' }, ticks: { color: '#555555' } }, x: { grid: { display: false }, ticks: { color: '#555555', maxTicksLimit: 10 } } } } });
+        }
+    },
+
+    // ==================== CURATED ====================
+    renderCurated() {
+        const perm = PERMISSIONS[this.state.user.role];
+        if (perm.curated === 'none') return '<div class="text-center py-20 text-vr-text-muted">Access denied</div>';
+
+        return `
+        <div class="page-transition space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="font-playfair text-2xl font-bold">Curated Lists</h2>
+                ${perm.curated === 'full' || perm.curated === 'create_edit' ? `
+                <button class="btn-primary px-4 py-2 rounded-lg text-sm"><i class="fas fa-plus mr-2"></i>Create List</button>
+                ` : ''}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${[
+                    { title: "Best Psychological Thrillers", curator: "Sarah M.", movies: 8, color: "from-purple-900/60 to-blue-900/60" },
+                    { title: "Oscar Winners 2024", curator: "FilmBuff", movies: 6, color: "from-yellow-900/60 to-orange-900/60" },
+                    { title: "Hidden Gems on Netflix", curator: "Cinephile", movies: 10, color: "from-red-900/60 to-pink-900/60" },
+                    { title: "90s Nostalgia Picks", curator: "RetroFan", movies: 7, color: "from-green-900/60 to-teal-900/60" },
+                    { title: "Mind-Bending Sci-Fi", curator: "SciFiGuy", movies: 9, color: "from-indigo-900/60 to-purple-900/60" },
+                    { title: "Perfect Date Night", curator: "RomComQueen", movies: 8, color: "from-pink-900/60 to-rose-900/60" }
+                ].map(list => `
+                    <div class="bg-vr-bg-card rounded-xl overflow-hidden border border-vr-border hover:border-vr-red/30 transition-all hover:scale-[1.02] cursor-pointer">
+                        <div class="h-24 bg-gradient-to-r ${list.color} relative">
+                            <div class="absolute inset-0 bg-black/30"></div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-playfair font-bold text-lg mb-1">${list.title}</h3>
+                            <p class="text-sm text-vr-text-secondary mb-3">by ${list.curator}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-vr-text-muted">${list.movies} movies</span>
+                                ${perm.curated !== 'view' ? `
+                                <div class="flex gap-1">
+                                    <button class="w-7 h-7 rounded hover:bg-vr-bg-secondary flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary"><i class="fas fa-pen text-xs"></i></button>
+                                    <button class="w-7 h-7 rounded hover:bg-vr-badge-award/20 flex items-center justify-center text-vr-badge-award hover:text-white"><i class="fas fa-trash text-xs"></i></button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+    },
+
+    // ==================== MONETIZATION ====================
+    renderMonetization() {
+        const perm = PERMISSIONS[this.state.user.role];
+        if (perm.monetization === 'none') return '<div class="text-center py-20 text-vr-text-muted">Access denied</div>';
+
+        return `
+        <div class="page-transition space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Affiliate Revenue</p>
+                    <p class="kpi-value">$2,610</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up text-xs trend-up"></i>
+                        <span class="text-xs trend-up font-medium">+18.2%</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Ad Revenue</p>
+                    <p class="kpi-value">$748</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up text-xs trend-up"></i>
+                        <span class="text-xs trend-up font-medium">+5.4%</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label mb-1">Premium MRR</p>
+                    <p class="kpi-value">$1,395</p>
+                    <div class="flex items-center gap-1 mt-2">
+                        <i class="fas fa-arrow-up text-xs trend-up"></i>
+                        <span class="text-xs trend-up font-medium">+12.8%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="font-playfair text-lg font-bold mb-4">Revenue Breakdown</h3>
+                <canvas id="chart-monetization" height="100"></canvas>
+            </div>
+
+            <div class="table-container">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Platform</th>
+                            <th>Clicks</th>
+                            <th>Conversions</th>
+                            <th>Conv. Rate</th>
+                            <th>Revenue</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${[
+                            { platform: "Netflix", clicks: 4520, conversions: 312, rate: "6.9%", revenue: "$748.80", status: "active" },
+                            { platform: "Prime Video", clicks: 3890, conversions: 245, rate: "6.3%", revenue: "$588.00", status: "active" },
+                            { platform: "Disney+", clicks: 2100, conversions: 156, rate: "7.4%", revenue: "$374.40", status: "active" },
+                            { platform: "HBO Max", clicks: 1850, conversions: 98, rate: "5.3%", revenue: "$235.20", status: "active" },
+                            { platform: "Hulu", clicks: 1200, conversions: 67, rate: "5.6%", revenue: "$160.80", status: "active" }
+                        ].map(row => `
+                            <tr class="table-row">
+                                <td class="font-medium text-sm">${row.platform}</td>
+                                <td class="text-sm text-vr-text-secondary">${row.clicks.toLocaleString()}</td>
+                                <td class="text-sm text-vr-text-secondary">${row.conversions}</td>
+                                <td class="text-sm text-vr-gold font-medium">${row.rate}</td>
+                                <td class="text-sm font-bold text-vr-gold">${row.revenue}</td>
+                                <td><span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium badge-active">Active</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
+    },
+
+    // ==================== SETTINGS ====================
+    renderSettings() {
+        const perm = PERMISSIONS[this.state.user.role];
+        if (perm.settings === 'none') return '<div class="text-center py-20 text-vr-text-muted">Access denied</div>';
+
+        return `
+        <div class="page-transition max-w-2xl space-y-6">
+            <h2 class="font-playfair text-2xl font-bold">Platform Settings</h2>
+
+            <div class="bg-vr-bg-card rounded-xl border border-vr-border p-6 space-y-6">
+                <div>
+                    <p class="form-section-title mb-1">General</p>
+                    <p class="text-sm text-vr-text-secondary mb-4">Configure basic platform behavior</p>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium">Maintenance Mode</p>
+                                <p class="text-xs text-vr-text-muted">Temporarily disable the platform</p>
+                            </div>
+                            <div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium">New User Registrations</p>
+                                <p class="text-xs text-vr-text-muted">Allow new signups</p>
+                            </div>
+                            <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium">Affiliate Links</p>
+                                <p class="text-xs text-vr-text-muted">Enable affiliate tracking</p>
+                            </div>
+                            <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider-gradient"></div>
+
+                <div>
+                    <p class="form-section-title mb-1">Search Algorithm</p>
+                    <p class="text-sm text-vr-text-secondary mb-4">Tune recommendation weights</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="admin-label">Rating Weight (0.0 - 1.0)</label>
+                            <input type="number" class="admin-input" value="0.4" step="0.1">
+                        </div>
+                        <div>
+                            <label class="admin-label">Mood Match Weight (0.0 - 1.0)</label>
+                            <input type="number" class="admin-input" value="0.3" step="0.1">
+                        </div>
+                        <div>
+                            <label class="admin-label">Minimum Results Threshold</label>
+                            <input type="number" class="admin-input" value="3">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider-gradient"></div>
+
+                <div>
+                    <p class="form-section-title mb-1">Danger Zone</p>
+                    <p class="text-sm text-vr-text-secondary mb-4">Irreversible actions</p>
+                    <button class="btn-destructive px-4 py-2 rounded-lg text-sm"><i class="fas fa-trash mr-2"></i>Clear All Search Logs</button>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="adminApp.showToast('Settings saved')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-sm">Save Changes</button>
+                </div>
+            </div>
+        </div>`;
+    },
+
+    // ==================== UTILS ====================
+    closeModal() {
+        document.getElementById('admin-modal').classList.remove('show');
+        document.body.style.overflow = '';
+    },
+
+    showToast(msg) {
+        const toast = document.getElementById('admin-toast');
+        document.getElementById('admin-toast-msg').textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => adminApp.init());
+</script>
+</body>
+</html>
