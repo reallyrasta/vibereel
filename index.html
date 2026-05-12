@@ -6,8 +6,6 @@
     <title>VibeReel — Find Your Perfect Movie</title>
     <script src="https://cdn.tailwindcss.com"></script>
 <script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-const supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   window.supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
 </script>
@@ -480,6 +478,7 @@ const supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
 
 <script>
 // ==================== DATA ====================
+const MOCK_MOVIES = [];
 const TMDB_API_KEY = '__TMDB_API_KEY__';
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
@@ -767,7 +766,7 @@ const app = {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') { this.closeModal(); this.closeTrailer(); this.closeAuthModal(); }
     });
-}
+    },
 
     toggleMobileMenu() {
         document.getElementById('mobile-menu').classList.toggle('hidden');
@@ -816,7 +815,7 @@ const app = {
     this.updateWatchlistBadge();
     this.showToast(`Welcome back, ${this.state.user.name}!`);
     if (this.state.page === 'watchlist') this.navigate('watchlist');
-}
+    },
 
 async handleSignup() {
     const name = document.getElementById('signup-name').value;
@@ -840,7 +839,7 @@ async handleSignup() {
     await this.loadWatchlist();
     this.updateWatchlistBadge();
     this.showToast(`Account created! Welcome, ${name}!`);
-}
+    },
 
 async handleSSO(provider) {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -848,7 +847,7 @@ async handleSSO(provider) {
         options: { redirectTo: window.location.origin }
     });
     if (error) this.showToast(error.message);
-}
+    },
 
 async logout() {
     await supabase.auth.signOut();
@@ -857,7 +856,7 @@ async logout() {
     this.updateAuthUI();
     this.showToast('Logged out successfully');
     if (this.state.page === 'watchlist') this.navigate('home');
-}
+    },
 
     // ==================== RENDERERS ====================
     renderHome() {
@@ -1750,10 +1749,14 @@ async logout() {
         this.state.results = [];
         this.navigate('results');
     }
-}
+    },
 
     // ==================== INTERACTIONS ====================
     showSurprise() {
+        if (!MOCK_MOVIES.length) {
+            this.showToast('No movies available for surprise');
+            return;
+        }
         const btn = event?.target?.closest('button');
         if (btn) {
             btn.innerHTML = '<div class="loader w-5 h-5 border-2"></div> Picking...';
@@ -1790,8 +1793,12 @@ async logout() {
     },
 
     openMovieModal(id) {
-        const movie = MOCK_MOVIES.find(m => m.id === id);
-        if (!movie) return;
+        let movie = MOCK_MOVIES.find(m => m.id === id);
+        if (!movie) movie = this.state.results.find(m => m.id === id);
+        if (!movie) {
+            this.showToast('Movie details not available');
+            return;
+        }
         const inWatchlist = this.state.watchlist.includes(id);
         const hours = Math.floor(movie.runtime / 60);
         const mins = movie.runtime % 60;
@@ -1967,7 +1974,7 @@ async logout() {
     
     if (this.state.page === 'watchlist') this.navigate('watchlist');
     else if (this.state.page === 'results') this.navigate('results');
-}
+    },
 
 async loadWatchlist() {
     if (!this.state.user) return;
@@ -1977,7 +1984,7 @@ async loadWatchlist() {
         .eq('user_id', this.state.user.id);
     this.state.watchlist = data?.map(w => w.movie_id) || [];
     localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
-}
+    },
 
     updateWatchlistBadge() {
         const badge = document.getElementById('watchlist-badge');
@@ -2011,6 +2018,106 @@ async loadWatchlist() {
         document.getElementById('toast-message').textContent = msg;
         toast.classList.remove('translate-y-20', 'opacity-0');
         setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 2500);
+    }
+
+    updateAuthUI() {
+        const authNav = document.getElementById('auth-nav');
+        const mobileAuthMenu = document.getElementById('mobile-auth-menu');
+        if (!authNav) return;
+
+        if (this.state.user) {
+            authNav.innerHTML = `
+                <div class="hidden md:flex items-center gap-3">
+                    <span class="text-sm text-vr-text-secondary">${this.state.user.name}</span>
+                    <button onclick="app.logout()" class="text-sm text-vr-text-tertiary hover:text-vr-text-primary transition-colors">Logout</button>
+                </div>
+                <div class="md:hidden flex items-center gap-3">
+                    <span class="text-sm text-vr-text-secondary">${this.state.user.name}</span>
+                </div>
+            `;
+            if (mobileAuthMenu) {
+                mobileAuthMenu.innerHTML = `
+                    <button onclick="app.logout(); app.toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-vr-text-tertiary hover:text-vr-text-primary">Logout</button>
+                `;
+            }
+        } else {
+            authNav.innerHTML = `
+                <button onclick="app.openAuth('login')" class="hidden md:block text-sm text-vr-text-tertiary hover:text-vr-text-primary transition-colors mr-3">Sign In</button>
+                <button onclick="app.openAuth('login')" class="px-4 py-2 bg-vr-red hover:bg-vr-red-hover rounded-lg text-sm font-medium transition-colors text-white">Get Started</button>
+            `;
+            if (mobileAuthMenu) {
+                mobileAuthMenu.innerHTML = `
+                    <button onclick="app.openAuth('login'); app.toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-vr-text-tertiary hover:text-vr-text-primary">Sign In</button>
+                    <button onclick="app.openAuth('login'); app.toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-vr-text-tertiary hover:text-vr-text-primary">Get Started</button>
+                `;
+            }
+        }
+    },
+
+    openAuth(mode) {
+        this.state.authMode = mode || 'login';
+        const content = document.getElementById('auth-modal-content');
+        const isLogin = this.state.authMode === 'login';
+
+        content.innerHTML = `
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-playfair text-2xl font-bold">${isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+                    <button onclick="app.closeAuthModal()" class="w-8 h-8 flex items-center justify-center text-vr-text-tertiary hover:text-vr-text-primary">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                ${!isLogin ? `
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Name</label>
+                    <input type="text" id="signup-name" class="auth-input" placeholder="Your name">
+                </div>
+                ` : ''}
+
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Email</label>
+                    <input type="email" id="${isLogin ? 'login-email' : 'signup-email'}" class="auth-input" placeholder="you@example.com">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-vr-text-muted uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" id="${isLogin ? 'login-password' : 'signup-password'}" class="auth-input" placeholder="••••••••">
+                </div>
+
+                <button onclick="app.${isLogin ? 'handleLogin' : 'handleSignup'}()" class="w-full py-3 btn-primary rounded-xl font-bold mb-4">
+                    ${isLogin ? 'Sign In' : 'Create Account'}
+                </button>
+
+                <div class="relative mb-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-vr-border"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs">
+                        <span class="px-2 bg-vr-bg-card text-vr-text-muted">or continue with</span>
+                    </div>
+                </div>
+
+                <button onclick="app.handleSSO('google')" class="sso-btn mb-3">
+                    <i class="fab fa-google"></i> Google
+                </button>
+
+                <p class="text-center text-sm text-vr-text-secondary mt-4">
+                    ${isLogin ? "Don't have an account? " : "Already have an account? "}
+                    <button onclick="app.openAuth('${isLogin ? 'signup' : 'login'}')" class="text-vr-red hover:text-vr-red-hover font-medium">
+                        ${isLogin ? 'Sign Up' : 'Sign In'}
+                    </button>
+                </p>
+            </div>
+        `;
+
+        document.getElementById('auth-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    },
+
+    closeAuthModal() {
+        document.getElementById('auth-modal').classList.add('hidden');
+        document.body.style.overflow = '';
     }
 };
 
