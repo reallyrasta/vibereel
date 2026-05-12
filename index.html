@@ -4,14 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VibeReel — Find Your Perfect Movie</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-  window.supabase = createClient('__SUPABASE_URL__', '__SUPABASE_KEY__');
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_KEY = '__SUPABASE_KEY__';
+const hasSupabaseConfig = SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.startsWith('__') && !SUPABASE_KEY.startsWith('__');
+
+try {
+  window.supabase = hasSupabaseConfig ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  if (!window.supabase) {
+    console.warn('Supabase is not configured; auth and cloud watchlist features are disabled.');
+  }
+} catch (error) {
+  console.warn('Supabase initialization failed; auth and cloud watchlist features are disabled.', error);
+  window.supabase = null;
+}
 </script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
+        window.tailwind = window.tailwind || {};
         tailwind.config = {
             theme: {
                 extend: {
@@ -740,32 +755,38 @@ const app = {
         moodSearch: ''
     },
 
+    getSupabaseClient() {
+        return window.supabase || null;
+    },
+
     async init() {
-    this.updateAuthUI();
-    await this.loadWatchlist();
-    this.updateWatchlistBadge();
-    this.updateWatchlistBadge();
-    this.navigate('home');
-    
-    if (this.state.user) {
-        await this.loadWatchlist();
-    }
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-        this.state.user = {
-            id: session.user.id,
-            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-            email: session.user.email
-        };
-        localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
         this.updateAuthUI();
         await this.loadWatchlist();
-    }
-    
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { this.closeModal(); this.closeTrailer(); this.closeAuthModal(); }
-    });
+        this.updateWatchlistBadge();
+        this.navigate('home');
+
+        const supabaseClient = this.getSupabaseClient();
+        if (supabaseClient?.auth) {
+            try {
+                const { data: { session } = {} } = await supabaseClient.auth.getSession();
+                if (session?.user) {
+                    this.state.user = {
+                        id: session.user.id,
+                        name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+                        email: session.user.email
+                    };
+                    localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
+                    this.updateAuthUI();
+                    await this.loadWatchlist();
+                }
+            } catch (error) {
+                console.warn('Unable to restore Supabase session:', error);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { this.closeModal(); this.closeTrailer(); this.closeAuthModal(); }
+        });
     },
 
     toggleMobileMenu() {
@@ -793,69 +814,86 @@ const app = {
 
     // ==================== AUTH SYSTEM ====================
     async handleLogin() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-        this.showToast(error.message);
-        return;
-    }
-    
-    this.state.user = { 
-        id: data.user.id, 
-        name: data.user.user_metadata?.name || email.split('@')[0], 
-        email: data.user.email 
-    };
-    localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
-    this.closeAuthModal();
-    this.updateAuthUI();
-    await this.loadWatchlist();
-    this.updateWatchlistBadge();
-    this.showToast(`Welcome back, ${this.state.user.name}!`);
-    if (this.state.page === 'watchlist') this.navigate('watchlist');
+        const supabaseClient = this.getSupabaseClient();
+        if (!supabaseClient?.auth) {
+            this.showToast('Sign-in is not configured yet.');
+            return;
+        }
+
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            this.showToast(error.message);
+            return;
+        }
+
+        this.state.user = {
+            id: data.user.id,
+            name: data.user.user_metadata?.name || email.split('@')[0],
+            email: data.user.email
+        };
+        localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
+        this.closeAuthModal();
+        this.updateAuthUI();
+        await this.loadWatchlist();
+        this.updateWatchlistBadge();
+        this.showToast(`Welcome back, ${this.state.user.name}!`);
+        if (this.state.page === 'watchlist') this.navigate('watchlist');
     },
 
-async handleSignup() {
-    const name = document.getElementById('signup-name').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    
-    const { data, error } = await supabase.auth.signUp({
-        email, password,
-        options: { data: { name } }
-    });
-    
-    if (error) {
-        this.showToast(error.message);
-        return;
-    }
-    
-    this.state.user = { id: data.user.id, name, email };
-    localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
-    this.closeAuthModal();
-    this.updateAuthUI();
-    await this.loadWatchlist();
-    this.updateWatchlistBadge();
-    this.showToast(`Account created! Welcome, ${name}!`);
+    async handleSignup() {
+        const supabaseClient = this.getSupabaseClient();
+        if (!supabaseClient?.auth) {
+            this.showToast('Sign-up is not configured yet.');
+            return;
+        }
+
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const { data, error } = await supabaseClient.auth.signUp({
+            email, password,
+            options: { data: { name } }
+        });
+
+        if (error) {
+            this.showToast(error.message);
+            return;
+        }
+
+        this.state.user = { id: data.user.id, name, email };
+        localStorage.setItem('vibereel_user', JSON.stringify(this.state.user));
+        this.closeAuthModal();
+        this.updateAuthUI();
+        await this.loadWatchlist();
+        this.updateWatchlistBadge();
+        this.showToast(`Account created! Welcome, ${name}!`);
     },
 
-async handleSSO(provider) {
-    const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: window.location.origin }
-    });
-    if (error) this.showToast(error.message);
+    async handleSSO(provider) {
+        const supabaseClient = this.getSupabaseClient();
+        if (!supabaseClient?.auth) {
+            this.showToast('SSO is not configured yet.');
+            return;
+        }
+
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider,
+            options: { redirectTo: window.location.origin }
+        });
+        if (error) this.showToast(error.message);
     },
 
-async logout() {
-    await supabase.auth.signOut();
-    this.state.user = null;
-    localStorage.removeItem('vibereel_user');
-    this.updateAuthUI();
-    this.showToast('Logged out successfully');
-    if (this.state.page === 'watchlist') this.navigate('home');
+    async logout() {
+        const supabaseClient = this.getSupabaseClient();
+        if (supabaseClient?.auth) await supabaseClient.auth.signOut();
+        this.state.user = null;
+        localStorage.removeItem('vibereel_user');
+        this.updateAuthUI();
+        this.showToast('Logged out successfully');
+        if (this.state.page === 'watchlist') this.navigate('home');
     },
 
     // ==================== RENDERERS ====================
@@ -1940,50 +1978,71 @@ async logout() {
     },
 
     async toggleWatchlist(movieId) {
-    if (!this.state.user) {
-        this.openAuth('login');
-        return;
-    }
-    
-    const { data: existing } = await supabase
-        .from('watchlist')
-        .select('*')
-        .eq('movie_id', movieId)
-        .eq('user_id', this.state.user.id)
-        .single();
-    
-    if (existing) {
-        await supabase.from('watchlist').delete().eq('id', existing.id);
-        this.showToast('Removed from watchlist');
-    } else {
-        await supabase.from('watchlist').insert({
-            user_id: this.state.user.id,
-            movie_id: movieId
-        });
-        this.showToast('Added to watchlist');
-    }
-    
-    const { data } = await supabase
-        .from('watchlist')
-        .select('movie_id')
-        .eq('user_id', this.state.user.id);
-    
-    this.state.watchlist = data?.map(w => w.movie_id) || [];
-    localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
-    this.updateWatchlistBadge();
-    
-    if (this.state.page === 'watchlist') this.navigate('watchlist');
-    else if (this.state.page === 'results') this.navigate('results');
+        if (!this.state.user) {
+            this.openAuth('login');
+            return;
+        }
+
+        const supabaseClient = this.getSupabaseClient();
+        if (!supabaseClient) {
+            const exists = this.state.watchlist.includes(movieId);
+            this.state.watchlist = exists
+                ? this.state.watchlist.filter(id => id !== movieId)
+                : [...this.state.watchlist, movieId];
+            localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
+            this.updateWatchlistBadge();
+            this.showToast(exists ? 'Removed from watchlist' : 'Added to watchlist');
+            if (this.state.page === 'watchlist') this.navigate('watchlist');
+            else if (this.state.page === 'results') this.navigate('results');
+            return;
+        }
+
+        const { data: existing } = await supabaseClient
+            .from('watchlist')
+            .select('*')
+            .eq('movie_id', movieId)
+            .eq('user_id', this.state.user.id)
+            .single();
+
+        if (existing) {
+            await supabaseClient.from('watchlist').delete().eq('id', existing.id);
+            this.showToast('Removed from watchlist');
+        } else {
+            await supabaseClient.from('watchlist').insert({
+                user_id: this.state.user.id,
+                movie_id: movieId
+            });
+            this.showToast('Added to watchlist');
+        }
+
+        const { data } = await supabaseClient
+            .from('watchlist')
+            .select('movie_id')
+            .eq('user_id', this.state.user.id);
+
+        this.state.watchlist = data?.map(w => w.movie_id) || [];
+        localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
+        this.updateWatchlistBadge();
+
+        if (this.state.page === 'watchlist') this.navigate('watchlist');
+        else if (this.state.page === 'results') this.navigate('results');
     },
 
-async loadWatchlist() {
-    if (!this.state.user) return;
-    const { data } = await supabase
-        .from('watchlist')
-        .select('movie_id')
-        .eq('user_id', this.state.user.id);
-    this.state.watchlist = data?.map(w => w.movie_id) || [];
-    localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
+    async loadWatchlist() {
+        if (!this.state.user) return;
+        const supabaseClient = this.getSupabaseClient();
+        if (!supabaseClient) return;
+
+        try {
+            const { data } = await supabaseClient
+                .from('watchlist')
+                .select('movie_id')
+                .eq('user_id', this.state.user.id);
+            this.state.watchlist = data?.map(w => w.movie_id) || [];
+            localStorage.setItem('vibereel_watchlist', JSON.stringify(this.state.watchlist));
+        } catch (error) {
+            console.warn('Unable to load watchlist:', error);
+        }
     },
 
     updateWatchlistBadge() {
@@ -2018,7 +2077,7 @@ async loadWatchlist() {
         document.getElementById('toast-message').textContent = msg;
         toast.classList.remove('translate-y-20', 'opacity-0');
         setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 2500);
-    }
+    },
 
     updateAuthUI() {
         const authNav = document.getElementById('auth-nav');
@@ -2122,6 +2181,7 @@ async loadWatchlist() {
 };
 
 // Initialize
+window.app = app;
 document.addEventListener('DOMContentLoaded', () => app.init());
 </script>
 </body>
