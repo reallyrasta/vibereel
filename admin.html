@@ -545,27 +545,48 @@ const adminApp = {
             return;
         }
 
-        const email = document.getElementById('admin-login-email').value.trim();
+        const email = document.getElementById('admin-login-email').value;
         const password = document.getElementById('admin-login-password').value;
+
+        // STEP 1: Block non-company emails immediately
+        const COMPANY_DOMAIN = 'vibereel.online';
+        if (!email.endsWith('@' + COMPANY_DOMAIN)) {
+            this.showToast('Admin access restricted to ' + COMPANY_DOMAIN + ' emails only');
+            return;
+        }
+
+        // STEP 2: Authenticate with Supabase
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        if (error) {
-            this.showToast(error.message || 'Invalid credentials. Please try again.');
+        if (error || !data.user) {
+            this.showToast('Invalid credentials');
             return;
         }
 
-        const adminUser = await this.getAuthorizedAdmin(data.user);
-        if (!adminUser) {
+        // STEP 3: Check admin role in database
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+        const allowedRoles = ['super_admin', 'admin', 'moderator'];
+        if (!allowedRoles.includes(profile?.role)) {
+            this.showToast('Access denied: Not an admin');
             await supabase.auth.signOut();
-            localStorage.removeItem('vibereel_admin_user');
-            this.state.user = null;
             return;
         }
 
-        this.state.user = adminUser;
-        localStorage.setItem('vibereel_admin_user', JSON.stringify(adminUser));
+        // STEP 4: Grant access
+        this.state.user = {
+            id: data.user.id,
+            name: data.user.user_metadata?.name || email.split('@')[0],
+            email: data.user.email,
+            role: profile.role
+        };
+        localStorage.setItem('vibereel_admin_user', JSON.stringify(this.state.user));
         this.showApp();
-        this.showToast(`Welcome back, ${adminUser.name}`);
+        this.showToast(`Welcome, ${this.state.user.name}`);
     },
 
     async handleSSO(provider) {
